@@ -8,21 +8,20 @@ import copy
 import random
 
 class MCTSAgent:
-    def __init__(self, mode, playoutBudget, playoutsPerSimulation, level):
-        heroes = copy.deepcopy(globals.heroes)
-        playerDeck = copy.deepcopy(globals.decks['Player Deck'])
-        player = Player(playerDeck, heroes, [], [], 25)
-        questDeck = copy.deepcopy(globals.decks['Quest Deck'])
-        encounterDeck = copy.deepcopy(globals.decks['Encounter Deck'])
-        board = Board(questDeck, encounterDeck, [], [], [])
-        if level == 'hard':
-            board.scenarioSetup()
-        player.shufflePlayerDeck()
-        player.drawHand()
-        self.rootNode = Node(board, player, None)
+    def __init__(self, mode, playoutBudget, playoutsPerSimulation, playoutType):
+        heroes = copy.deepcopy(Game_Model.globals.heroes)
+        playerDeck = copy.deepcopy(Game_Model.globals.decks['Player Deck'])
+        player = Player(playerDeck, heroes, 24) ### threat level should be in globals!!!!!!!!!!!!
+        questDeck = copy.deepcopy(Game_Model.globals.decks['Quest Deck'])
+        encounterDeck = copy.deepcopy(Game_Model.globals.decks['Encounter Deck'])
+        board = Board(questDeck, encounterDeck)
+        game = Game(board, player)
+        game.setupGame()
+        self.rootNode = Node(game.getBoard(), game.getPlayer(), None)
         self.mode = mode
         self.playoutBudget = playoutBudget
         self.playoutsPerSimulation = playoutsPerSimulation
+        self.playoutType = playoutType
 
     def simulate(self, outputFile):
         while 1:
@@ -32,8 +31,8 @@ class MCTSAgent:
                 break
             if self.simulateDefense(outputFile):
                 break
-        globals.gameOver = False
-        globals.gameWin = False
+        Game_Model.globals.gameOver = False
+        Game_Model.globals.gameWin = False
 
     def checkIfLoseWin(self, outputFile):
         if globals.gameOver:
@@ -47,7 +46,7 @@ class MCTSAgent:
         return False
 
     def simulateMCTS(self):
-        mcts = MCTS(self.rootNode, self.playoutBudget, self.playoutsPerSimulation)
+        mcts = MCTS(self.rootNode, self.playoutBudget, self.playoutsPerSimulation, self.playoutType)
         self.rootNode = mcts.makeDecision()
         self.rootNode.resetFamily()
         self.rootNode.isTerminal()
@@ -80,23 +79,35 @@ class MCTSAgent:
             self.simulateMCTS()
         return self.checkIfLoseWin(outputFile)
 
-    def simulateDefense(self, outputFile):
+    def simulateTravelPhase(self, game):
         if self.mode[2] == 'e':
-            game = self.rootNode.createGame()
+            game.expertTravelPhase()
+        else:
             game.randomTravelPhase()
+
+    def simulateDefense(self, outputFile):
+        if self.mode[3] == 'e':
+            game = self.rootNode.createGame()
+            self.simulateTravelPhase()
             game.encounterPhase()
             game.expertDefense()
-            game.playoutAttackEnemies()
+            self.simulateAttack()
             game.refreshPhase()
             self.rootNode = Node(game.getBoard(), game.getPlayer(), None, 'Defense')
-        elif self.mode[2] == 'r':
+        elif self.mode[3] == 'r':
             game = self.rootNode.createGame()
-            game.randomTravelPhase()
+            self.simulateTravelPhase()
             game.encounterPhase()
             game.randomDefense()
-            game.playoutAttackEnemies()
+            self.simulateAttack()
             game.refreshPhase()
             self.rootNode = Node(game.getBoard(), game.getPlayer(), None, 'Defense')
         else:
             self.simulateMCTS()
         return self.checkIfLoseWin(outputFile)
+
+    def simulateAttack(self, game):
+        if self.mode[4] == 'e':
+            game.expertAttack()
+        else:
+            game.randomAttack()

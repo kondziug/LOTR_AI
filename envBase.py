@@ -8,7 +8,7 @@ import numpy as np
 
 class EnvBase(ABC):
     def __init__(self):
-        player = Player(Game_Model.globals.decks['Player Deck'], Game_Model.globals.heroes, 24)
+        player = Player(Game_Model.globals.decks['Player Deck'], Game_Model.globals.heroes, 24) ## threat level should be in globals!!!!!!!!!!!!!!!
         board = Board(Game_Model.globals.decks['Quest Deck'], Game_Model.globals.decks['Encounter Deck'])
         self.game = Game(board, player)
         self.game.setupGame()

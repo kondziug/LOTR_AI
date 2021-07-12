@@ -8,12 +8,12 @@ import copy
 import itertools
 
 class MCTS:
-    def __init__(self, rootNode, playoutBudget, playoutsPerSimulation):
+    def __init__(self, rootNode, playoutBudget, playoutsPerSimulation, playoutType):
         self.rootNode = rootNode
         self.playoutBudget = playoutBudget
         self.playoutsPerSimulation = playoutsPerSimulation
+        self.playoutType = playoutType ### 0 - random, 1 - expert
         self.uctConst = 1
-        self.omitStaging = False
         
     def uctFn(self, node):
         return node.getUtility() / node.getVisits() + self.uctConst * math.sqrt(2 * math.log(node.getParent().getVisits()) / node.getVisits())
@@ -41,21 +41,16 @@ class MCTS:
         return self.select(result, lvl)
 
     def expand(self, node):
-        if self.omitStaging:
-            self.expandQuestingWithStaging(node)
-            self.omitStaging = False
-            return
-        if not node.getStage() or node.getStage() == 'Defense':
-            self.expandPlanning(node)
-            return
+        if not node.getStage():
+            self.expandPlanning()
         if node.getStage() == 'Planning':
-            self.expandStaging(node)
-            return
-        if node.getStage() == 'Staging':
             self.expandQuesting(node)
             return
         if node.getStage() == 'Questing':
             self.expandDefense(node)
+            return
+        if node.getStage() == 'Defense':
+            self.expandPlanning(node)
             return
 
     def expandPlanning(self, node):
@@ -65,21 +60,12 @@ class MCTS:
         for name in legalCards:
             newGame = copy.deepcopy(game) # watch out!!!!!!!!!
             if name != 'None':
-                card = newGame.getPlayer().findCardInHand(name)
+                card = newGame.getPlayer().findCardInHandByName(name)
                 newGame.getPlayer().spendResourcesBySphere(card.sphere, card.cost)
                 newGame.getPlayer().addToAllies(card)
             newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Planning')
             node.addChild(newNode)
             # print('Node with ' + name + ' added')
-
-    def expandStaging(self, node):
-        game = node.createGame()
-        names = game.getBoard().getEncounterDeck().getAllNames()
-        for name in names:
-            newGame = copy.deepcopy(game)
-            newGame.applyCard(name)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Staging')
-            node.addChild(newNode)
 
     def expandQuesting(self, node):
         game = node.createGame()
@@ -92,25 +78,10 @@ class MCTS:
             return
         for subset in legalSubsets:
             newGame = copy.deepcopy(game)
-            newGame.subsetQuesting(subset, False)
+            self.subsetQuesting(newGame, subset)
             newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Questing')
             node.addChild(newNode)
             # print('Node with subset: ' + self.getSubsetName(subset) + 'added')
-
-    def expandQuestingWithStaging(self, node):
-        game = node.createGame()
-        legalSubsets = self.findLegalsQuesting(game.getPlayer(), game.getBoard().getCombinedThreat())
-        if not legalSubsets:
-            newGame = copy.deepcopy(game)
-            newGame.resolveQuesting(0)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Questing')
-            node.addChild(newNode)
-            return
-        for subset in legalSubsets:
-            newGame = copy.deepcopy(game)
-            newGame.subsetQuesting(subset, True)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Questing')
-            node.addChild(newNode)
 
     def expandDefense(self, node):
         game = node.createGame()
@@ -125,8 +96,8 @@ class MCTS:
             return
         for subset in legalSubsets:
             newGame = copy.deepcopy(game)
-            newGame.subsetDefense(subset)
-            newGame.playoutAttackEnemies()
+            self.subsetDefense(newGame, subset)
+            newGame.randomAttack() ##################### sure??
             newGame.refreshPhase()
             newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Defense')
             node.addChild(newNode)
@@ -165,8 +136,6 @@ class MCTS:
         return decision
 
     def buildUpTree(self):
-        if self.rootNode.getStage() == 'Planning':
-            self.omitStaging = True
         while self.playoutBudget > 0:
             leafNode = self.select(self.rootNode, 0)
             self.expand(leafNode)
@@ -179,8 +148,8 @@ class MCTS:
     @staticmethod
     def getSubsetWillpower(subset):
         combinedWillpower = 0
-        for name in subset:
-            combinedWillpower += globals.dictOfCards[name].getWillpower()
+        for card in subset:
+            combinedWillpower += card.getWillpower()
         return combinedWillpower
 
     @staticmethod
@@ -201,21 +170,18 @@ class MCTS:
         return legalCards
 
     def findLegalsQuesting(self, player, combinedThreat): # to optimise: player to mainGame.getPlayer()
-        names = []
         playerCharacters = player.getAllCharacters()
-        for card in playerCharacters:
-            names.append(card.getName())
         legalNodes = []
-        for i in range(1, len(names)):
-            for subset in itertools.combinations(names, i):
-                if self.getSubsetWillpower(list(subset)) > combinedThreat and not self.subsetContains(list(subset), ['Veteran Axehand', 'Gondorian Spearman', 'Horseback Archer']):
-                    legalNodes.append(list(subset))
+        for i in range(1, len(playerCharacters)):
+            for subset in itertools.combinations(playerCharacters, i):
+                cardList = list(subset)
+                if self.getSubsetWillpower(cardList) > combinedThreat:
+                    legalNodes.append(self.subsetToNames(cardList))
         return legalNodes
 
     def findLegalsDefense(self, board, player):
         enemiesEngaged = board.getEnemiesEngaged()
         if not enemiesEngaged:
-            globals.dmode('no enemies engaged')
             return
         playerCharacters = player.getAllCharacters()
         legalDefenders = []
@@ -243,6 +209,36 @@ class MCTS:
     #         legalAttackers.append(Node(self.subsetToNames(playerCharacters)))
     #     return legalAttackers
 
+    def subsetQuesting(self, game, subset):
+        if not subset:
+            return
+        combinedWillpower = 0
+        for name in subset:
+            card = game.getPlayer().findCardInPlay(name)
+            combinedWillpower += card.getWillpower()
+            card.tap() ## + set status????
+        game.resolveQuesting(combinedWillpower)
+
+    def subsetDefense(self, game, subset):
+        if not subset:
+            return
+        enemiesEngaged = game.getBoard().getEnemiesEngaged()
+        if not enemiesEngaged:
+            return
+        playerCharacters = []
+        for name in subset:
+            card = game.getPlayer().findCardInPlay(name)
+            playerCharacters.append(card)
+        for enemy in enemiesEngaged:
+            defender = random.choice(playerCharacters) ### sure???
+            if not defender.isTapped():
+                result = defender.defense - enemy.attack
+                if result < 0:
+                    defender.takeDamage(abs(result))
+                defender.tap()
+            else:
+                game.getPlayer().randomUndefended(enemy.attack)
+
     def simulateComplete(self, game): # to optimise: include in simulate planning, questing, defense!!!
         wins = 0
         turns = 0
@@ -253,14 +249,14 @@ class MCTS:
             tmpGame = copy.deepcopy(game)
             while 1:
                 turns += 1
-                tmpGame.doTurn()
-                if globals.gameOver:
+                self.doTurn(tmpGame)
+                if Game_Model.globals.gameOver:
                     break
-                if globals.gameWin:
+                if Game_Model.globals.gameWin:
                     wins += 1
                     break
-            globals.gameWin = False
-            globals.gameOver = False
+            Game_Model.globals.gameWin = False
+            Game_Model.globals.gameOver = False
         # print('Player wins ' + str(score))
         return wins
 
@@ -272,17 +268,30 @@ class MCTS:
                 break
             self.playoutBudget -= 1
             tmpGame = copy.deepcopy(game)
-            tmpGame.completeTurn()
+            if self.playoutType == 0:
+                tmpGame.randomQuesting()
+                tmpGame.randomTravelPhase()
+            else:
+                tmpGame.expertQuesting()
+                tmpGame.expertTravelPhase()
+            tmpGame.encounterPhase()
+            if self.playoutType == 0:
+                tmpGame.randomDefense()
+                tmpGame.randomAttack()
+            else:
+                tmpGame.expertDefense()
+                tmpGame.expertAttack()
+            tmpGame.refreshPhase()
             while 1:
                 turns += 1
-                if globals.gameOver:
+                if Game_Model.globals.gameOver:
                     break
-                if globals.gameWin:
+                if Game_Model.globals.gameWin:
                     wins += 1
                     break
-                tmpGame.doTurn()
-            globals.gameWin = False
-            globals.gameOver = False
+                self.doTurn(tmpGame)
+            Game_Model.globals.gameWin = False
+            Game_Model.globals.gameOver = False
         return wins
 
     def simulateQuesting(self, game):
@@ -293,21 +302,49 @@ class MCTS:
                 break
             self.playoutBudget -= 1
             tmpGame = copy.deepcopy(game)
-            tmpGame.randomTravelPhase()
+            if self.playoutType == 0:
+                tmpGame.randomTravelPhase()
+            else:
+                tmpGame.expertTravelPhase()
             tmpGame.encounterPhase()
-            tmpGame.playoutCombatPhase()
+            if self.playoutType == 0:
+                tmpGame.randomDefense()
+                tmpGame.randomAttack()
+            else:
+                tmpGame.expertDefense()
+                tmpGame.expertAttack()
             tmpGame.refreshPhase()
             while 1:
                 turns += 1
-                if globals.gameOver:
+                if Game_Model.globals.gameOver:
                     break
-                if globals.gameWin:
+                if Game_Model.globals.gameWin:
                     wins += 1
                     break
-                tmpGame.doTurn()
-            globals.gameWin = False
-            globals.gameOver = False
+                self.doTurn(tmpGame)
+            Game_Model.globals.gameWin = False
+            Game_Model.globals.gameOver = False
         return wins
+
+    def doTurn(self, game):
+        game.resourcePhase()
+        if self.playoutType == 0:
+            game.randomPlanning()
+            game.randomQuesting()
+            game.randomTravelPhase()
+        else:
+            game.expertPlanning()
+            game.expertQuesting()
+            game.expertTravelPhase()
+        game.encounterPhase()
+        if self.playoutType == 0:
+            game.randomDefense()
+            game.randomAttack()
+        else:
+            game.expertDefense()
+            game.expertAttack()
+        game.refreshPhase()
+
 
     # def simulateDefense(self, game): ########### to remove????????????
     #     score = 0
