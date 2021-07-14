@@ -48,6 +48,16 @@ def mctsTrial(params):
 
     outputFile1.close()
 
+def countWins(filename):
+    total = 0
+    score = 0
+    with open(filename, 'r') as of:
+        for ch in of.read():
+            total += 1
+            if ch == 'w': score += 1
+
+    print(f'winrate: {score / total * 100}')
+
 def objective(params):
     print(len(Game_Model.globals.decks['Encounter Deck'].cardList))
     print(len(Game_Model.globals.decks['Player Deck'].cardList))
@@ -148,6 +158,7 @@ def main():
 
         p = mp.Pool()
         p.map(mctsTrial, params)
+        countWins(mode + '.txt')
 
 if __name__=='__main__':
     main()
