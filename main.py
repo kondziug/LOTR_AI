@@ -5,25 +5,32 @@ from environment2 import Environment2
 from defaultAgent import DefaultAgent
 import Game_Model.globals
 from vanilla_AC.agent import Agent
+from vanilla_mcts.mctsAgent import MCTSAgent
 import numpy as np
 from itertools import product
-import tensorflow as tf
-import logging
-tf.get_logger().setLevel(logging.ERROR)
-from hyperopt import tpe, hp, fmin
+import multiprocessing as mp
+# import tensorflow as tf
+# import logging
+# tf.get_logger().setLevel(logging.ERROR)
+# from hyperopt import tpe, hp, fmin
 
 Game_Model.globals.init()
 
 # 0 - sensitivty analysis
 # 1 - single RL run
 # 2 - optimization
-pipeline = 1
+# 3 - mcts trial
+pipeline = 3
 # 0 - enemies + round
 # 1 - enemies + lands + round
 # 2 - enemies + combined threat
 encoding = 2
 default_lr = 0.0001
 num_episodes = 1000
+
+playoutBudget = 40
+playoutsPerSimulation = 1
+playoutType = 0 ## 0 - random, 1 - expert
 
 best_avg = -1
 
@@ -32,6 +39,14 @@ def sensitivityAnalysis(num_episodes):
         agent = DefaultAgent(mode, num_episodes)
         avg_score = agent.simulate()
         print(f'mode: {mode}, winrate: {avg_score}')
+
+def mctsTrial(params):
+    outputFile1 = open(str(params[0]) + '.txt', 'a')
+
+    mcts = MCTSAgent(params[0], params[1], params[2], params[3])
+    mcts.simulate(outputFile1)
+
+    outputFile1.close()
 
 def objective(params):
     print(len(Game_Model.globals.decks['Encounter Deck'].cardList))
@@ -125,6 +140,14 @@ def main():
             max_evals=30
         )
         print(best)
+    elif pipeline == 3:
+        mode = 'mrrrr'
+        params = []
+        for _ in range(10000):
+            params.append([mode, playoutBudget, playoutsPerSimulation, playoutType])
+
+        p = mp.Pool()
+        p.map(mctsTrial, params)
 
 if __name__=='__main__':
     main()

@@ -1,7 +1,7 @@
 from Game_Model.game import Game
 from Game_Model.ally import Ally
 import Game_Model.globals
-from node import Node
+from vanilla_mcts.node import Node
 import random
 import math
 import copy
@@ -42,7 +42,8 @@ class MCTS:
 
     def expand(self, node):
         if not node.getStage():
-            self.expandPlanning()
+            self.expandPlanning(node)
+            return
         if node.getStage() == 'Planning':
             self.expandQuesting(node)
             return
@@ -54,7 +55,7 @@ class MCTS:
             return
 
     def expandPlanning(self, node):
-        game = node.createGame()
+        game = node.getGame()
         game.resourcePhase()
         legalCards = self.findLegalsPlanning(game.getPlayer())
         for name in legalCards:
@@ -63,35 +64,35 @@ class MCTS:
                 card = newGame.getPlayer().findCardInHandByName(name)
                 newGame.getPlayer().spendResourcesBySphere(card.sphere, card.cost)
                 newGame.getPlayer().addToAllies(card)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Planning')
+            newNode = Node(newGame, node, 'Planning')
             node.addChild(newNode)
             # print('Node with ' + name + ' added')
 
     def expandQuesting(self, node):
-        game = node.createGame()
+        game = node.getGame()
         legalSubsets = self.findLegalsQuesting(game.getPlayer(), game.getBoard().getCombinedThreat())
         if not legalSubsets:
             newGame = copy.deepcopy(game)
             newGame.resolveQuesting(0)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Questing')
+            newNode = Node(newGame, node, 'Questing')
             node.addChild(newNode)
             return
         for subset in legalSubsets:
             newGame = copy.deepcopy(game)
             self.subsetQuesting(newGame, subset)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Questing')
+            newNode = Node(newGame, node, 'Questing')
             node.addChild(newNode)
             # print('Node with subset: ' + self.getSubsetName(subset) + 'added')
 
     def expandDefense(self, node):
-        game = node.createGame()
+        game = node.getGame()
         game.randomTravelPhase()
         game.encounterPhase()
         legalSubsets = self.findLegalsDefense(game.getBoard(), game.getPlayer())
         if not legalSubsets:
             newGame = copy.deepcopy(game)
             newGame.refreshPhase()
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Defense')
+            newNode = Node(newGame, node, 'Defense')
             node.addChild(newNode)
             return
         for subset in legalSubsets:
@@ -99,7 +100,7 @@ class MCTS:
             self.subsetDefense(newGame, subset)
             newGame.randomAttack() ##################### sure??
             newGame.refreshPhase()
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Defense')
+            newNode = Node(newGame, node, 'Defense')
             node.addChild(newNode)
 
     def backpropagate(self, node, score):
@@ -110,7 +111,7 @@ class MCTS:
 
     def simulate(self, node):
         score = 0
-        game = node.createGame()
+        game = node.getGame()
         if not node.getStage() or node.getStage() == 'Defense':
             score = self.simulateComplete(game)
         if node.getStage() == 'Planning':

@@ -92,7 +92,7 @@ class Board:
     def addToStagingArea(self): 
         card = self.revealCard()
         if not card:
-            print('out of cards in the encounter deck')
+            # print('out of cards in the encounter deck')
             return
         self.addCard(card)
 

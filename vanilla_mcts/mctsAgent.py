@@ -2,8 +2,8 @@ from Game_Model.player import Player
 from Game_Model.board import Board
 from Game_Model.game import Game
 import Game_Model.globals
-from node import Node
-from mcts import MCTS
+from vanilla_mcts.node import Node
+from vanilla_mcts.mcts import MCTS
 import copy
 import random
 
@@ -17,7 +17,7 @@ class MCTSAgent:
         board = Board(questDeck, encounterDeck)
         game = Game(board, player)
         game.setupGame()
-        self.rootNode = Node(game.getBoard(), game.getPlayer(), None)
+        self.rootNode = Node(game, None)
         self.mode = mode
         self.playoutBudget = playoutBudget
         self.playoutsPerSimulation = playoutsPerSimulation
@@ -35,12 +35,10 @@ class MCTSAgent:
         Game_Model.globals.gameWin = False
 
     def checkIfLoseWin(self, outputFile):
-        if globals.gameOver:
-            globals.dmode('gameover')
+        if Game_Model.globals.gameOver:
             outputFile.write('l')
             return True
-        if globals.gameWin:
-            globals.dmode('gameWin')
+        if Game_Model.globals.gameWin:
             outputFile.write('w')
             return True
         return False
@@ -49,32 +47,32 @@ class MCTSAgent:
         mcts = MCTS(self.rootNode, self.playoutBudget, self.playoutsPerSimulation, self.playoutType)
         self.rootNode = mcts.makeDecision()
         self.rootNode.resetFamily()
-        self.rootNode.isTerminal()
+        # self.rootNode.isTerminal()
 
     def simulatePlanning(self, outputFile):
         if self.mode[0] == 'e':
-            game = self.rootNode.createGame()
+            game = self.rootNode.getGame()
             game.resourcePhase()
             game.expertPlanning()
-            self.rootNode = Node(game.getBoard(), game.getPlayer(), None, 'Planning')
+            self.rootNode = Node(game, None, 'Planning')
         elif self.mode[0] == 'r':
-            game = self.rootNode.createGame()
+            game = self.rootNode.getGame()
             game.resourcePhase()
             game.randomPlanning()
-            self.rootNode = Node(game.getBoard(), game.getPlayer(), None, 'Planning')
+            self.rootNode = Node(game, None, 'Planning')
         else:
             self.simulateMCTS()
         return self.checkIfLoseWin(outputFile)
 
     def simulateQuesting(self, outputFile):
         if self.mode[1] == 'e':
-            game = self.rootNode.createGame()
+            game = self.rootNode.getGame()
             game.expertQuesting()
-            self.rootNode = Node(game.getBoard(), game.getPlayer(), None, 'Questing')
+            self.rootNode = Node(game, None, 'Questing')
         elif self.mode[1] == 'r':
-            game = self.rootNode.createGame()
+            game = self.rootNode.getGame()
             game.randomQuesting()
-            self.rootNode = Node(game.getBoard(), game.getPlayer(), None, 'Questing')
+            self.rootNode = Node(game, None, 'Questing')
         else:
             self.simulateMCTS()
         return self.checkIfLoseWin(outputFile)
@@ -87,21 +85,21 @@ class MCTSAgent:
 
     def simulateDefense(self, outputFile):
         if self.mode[3] == 'e':
-            game = self.rootNode.createGame()
-            self.simulateTravelPhase()
+            game = self.rootNode.getGame()
+            self.simulateTravelPhase(game)
             game.encounterPhase()
             game.expertDefense()
-            self.simulateAttack()
+            self.simulateAttack(game)
             game.refreshPhase()
-            self.rootNode = Node(game.getBoard(), game.getPlayer(), None, 'Defense')
+            self.rootNode = Node(game, None, 'Defense')
         elif self.mode[3] == 'r':
-            game = self.rootNode.createGame()
-            self.simulateTravelPhase()
+            game = self.rootNode.getGame()
+            self.simulateTravelPhase(game)
             game.encounterPhase()
             game.randomDefense()
-            self.simulateAttack()
+            self.simulateAttack(game)
             game.refreshPhase()
-            self.rootNode = Node(game.getBoard(), game.getPlayer(), None, 'Defense')
+            self.rootNode = Node(game, None, 'Defense')
         else:
             self.simulateMCTS()
         return self.checkIfLoseWin(outputFile)
