@@ -28,6 +28,7 @@ encoding = 2
 default_lr = 0.0003
 num_episodes = 10000
 
+num_mctsTrials = 1000
 playoutBudget = 40
 playoutsPerSimulation = 1
 playoutType = 0 ## 0 - random, 1 - expert
@@ -153,7 +154,7 @@ def main():
     elif pipeline == 3:
         mode = 'errrr'
         params = []
-        for _ in range(1000):
+        for _ in range(num_mctsTrials):
             params.append([mode, playoutBudget, playoutsPerSimulation, playoutType])
 
         p = mp.Pool()
