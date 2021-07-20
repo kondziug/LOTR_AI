@@ -33,7 +33,7 @@ class Game():
         if not playerHand:
             return
         for _ in range(0, 6):
-            if not playerHand or random.random() < 0.9:
+            if not playerHand or random.random() < 0.1:
                 return
             card = random.choice(playerHand)
             if self.player.getResourcesBySphere(card.sphere) >= card.cost:

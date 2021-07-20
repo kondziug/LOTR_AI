@@ -20,13 +20,13 @@ Game_Model.globals.init()
 # 1 - single RL run
 # 2 - optimization
 # 3 - mcts trial
-pipeline = 3
+pipeline = 0
 # 0 - enemies + round
 # 1 - enemies + lands + round
 # 2 - enemies + combined threat
 encoding = 2
-default_lr = 0.0001
-num_episodes = 1000
+default_lr = 0.0003
+num_episodes = 10000
 
 playoutBudget = 40
 playoutsPerSimulation = 1
@@ -151,9 +151,9 @@ def main():
         )
         print(best)
     elif pipeline == 3:
-        mode = 'mrrrr'
+        mode = 'errrr'
         params = []
-        for _ in range(10000):
+        for _ in range(1000):
             params.append([mode, playoutBudget, playoutsPerSimulation, playoutType])
 
         p = mp.Pool()
