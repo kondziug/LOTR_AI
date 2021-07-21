@@ -20,7 +20,7 @@ Game_Model.globals.init()
 # 1 - single RL run
 # 2 - optimization
 # 3 - mcts trial
-pipeline = 3
+pipeline = 0
 # 0 - enemies + round
 # 1 - enemies + lands + round
 # 2 - enemies + combined threat
@@ -28,7 +28,7 @@ encoding = 2
 default_lr = 0.0003
 num_episodes = 10000
 
-num_mctsTrials = 1000
+num_mctsTrials = 1
 mctsMode = 'eeeee'
 playoutBudget = 40
 playoutsPerSimulation = 1

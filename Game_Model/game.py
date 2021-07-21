@@ -32,7 +32,7 @@ class Game():
         playerHand = self.player.getHand()
         if not playerHand:
             return
-        for _ in range(0, 6):
+        for _ in range(6):
             if not playerHand or random.random() < 0.1:
                 return
             card = random.choice(playerHand)
@@ -70,19 +70,16 @@ class Game():
         self.resolveQuesting(combinedWillpower)
 
     def expertQuesting(self):
+        threatLevel = self.board.getCombinedThreat()
+        playerCharacters = self.player.getAllCharacters()
+        playerCharacters.sort(key=lambda x: x.willpower / x.hitpoints, reverse=True)
         combinedWillpower = 0
-        spirits = self.player.getCharactersBySphere('Spirit')
-        if not spirits:
-            return 
-        for card in spirits:
-            combinedWillpower += card.getWillpower()
-            card.tap() ### + set status???
-        gandalf = self.player.findCardInPlay('Gandalf')
-        if gandalf:
-            combinedWillpower += gandalf.getWillpower()
-            gandalf.tap() ## + set status????????
-        # if combinedWillpower <= self.board.getCombinedThreat():
-        #     return self.randomQuestingPhase() # but cards are already tapped !!!!!!!!!!!!
+        if playerCharacters:
+            return
+        for card in playerCharacters:
+            if combinedWillpower < threatLevel:
+                combinedWillpower += card.getWillpower()
+                card.tap() ### + set status???
         self.resolveQuesting(combinedWillpower)
 
     def questingPhase(self, cardList):
