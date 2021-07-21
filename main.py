@@ -20,7 +20,7 @@ Game_Model.globals.init()
 # 1 - single RL run
 # 2 - optimization
 # 3 - mcts trial
-pipeline = 0
+pipeline = 3
 # 0 - enemies + round
 # 1 - enemies + lands + round
 # 2 - enemies + combined threat
@@ -29,7 +29,7 @@ default_lr = 0.0003
 num_episodes = 10000
 
 num_mctsTrials = 1000
-mctsMode = 'meeee'
+mctsMode = 'mrrrr'
 playoutBudget = 40
 playoutsPerSimulation = 1
 playoutType = 0 ## 0 - random, 1 - expert
@@ -159,7 +159,7 @@ def main():
 
         p = mp.Pool()
         p.map(mctsTrial, params)
-        countWins(mode + '.txt')
+        countWins(mctsMode + '.txt')
 
 if __name__=='__main__':
     main()
