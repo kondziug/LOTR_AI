@@ -74,7 +74,7 @@ class Game():
         playerCharacters = self.player.getAllCharacters()
         playerCharacters.sort(key=lambda x: x.willpower / x.hitpoints, reverse=True)
         combinedWillpower = 0
-        if playerCharacters:
+        if not playerCharacters:
             return
         for card in playerCharacters:
             if combinedWillpower < threatLevel:
