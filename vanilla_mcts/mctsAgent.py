@@ -23,23 +23,24 @@ class MCTSAgent:
         self.playoutsPerSimulation = playoutsPerSimulation
         self.playoutType = playoutType
 
-    def simulate(self, outputFile):
+    def simulate(self):
         while 1:
-            if self.simulatePlanning(outputFile):
+            if self.simulatePlanning():
                 break
-            if self.simulateQuesting(outputFile):
+            if self.simulateQuesting():
                 break
-            if self.simulateDefense(outputFile):
+            if self.simulateDefense():
                 break
+        if Game_Model.globals.gameWin:
+            reward = 1
+        if Game_Model.globals.gameOver:
+            reward = 0
         Game_Model.globals.gameOver = False
         Game_Model.globals.gameWin = False
+        return reward
 
-    def checkIfLoseWin(self, outputFile):
-        if Game_Model.globals.gameOver:
-            outputFile.write('l')
-            return True
-        if Game_Model.globals.gameWin:
-            outputFile.write('w')
+    def checkIfLoseWin(self):
+        if Game_Model.globals.gameOver or Game_Model.globals.gameWin:
             return True
         return False
 
@@ -49,7 +50,7 @@ class MCTSAgent:
         self.rootNode.resetFamily()
         # self.rootNode.isTerminal()
 
-    def simulatePlanning(self, outputFile):
+    def simulatePlanning(self):
         if self.mode[0] == 'e':
             game = self.rootNode.getGame()
             game.resourcePhase()
@@ -62,9 +63,9 @@ class MCTSAgent:
             self.rootNode = Node(game, None, 'Planning')
         else:
             self.simulateMCTS()
-        return self.checkIfLoseWin(outputFile)
+        return self.checkIfLoseWin()
 
-    def simulateQuesting(self, outputFile):
+    def simulateQuesting(self):
         if self.mode[1] == 'e':
             game = self.rootNode.getGame()
             game.expertQuesting()
@@ -75,7 +76,7 @@ class MCTSAgent:
             self.rootNode = Node(game, None, 'Questing')
         else:
             self.simulateMCTS()
-        return self.checkIfLoseWin(outputFile)
+        return self.checkIfLoseWin()
 
     def simulateTravelPhase(self, game):
         if self.mode[2] == 'e':
@@ -83,7 +84,7 @@ class MCTSAgent:
         else:
             game.randomTravelPhase()
 
-    def simulateDefense(self, outputFile):
+    def simulateDefense(self):
         if self.mode[3] == 'e':
             game = self.rootNode.getGame()
             self.simulateTravelPhase(game)
@@ -102,7 +103,7 @@ class MCTSAgent:
             self.rootNode = Node(game, None, 'Defense')
         else:
             self.simulateMCTS()
-        return self.checkIfLoseWin(outputFile)
+        return self.checkIfLoseWin()
 
     def simulateAttack(self, game):
         if self.mode[4] == 'e':

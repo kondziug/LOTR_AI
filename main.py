@@ -29,7 +29,7 @@ default_lr = 0.0003
 num_episodes = 10000
 
 num_mctsTrials = 1000
-mctsMode = 'mrrrr'
+mctsMode = 'eeeee'
 playoutBudget = 40
 playoutsPerSimulation = 1
 playoutType = 0 ## 0 - random, 1 - expert
@@ -43,22 +43,18 @@ def sensitivityAnalysis(num_episodes):
         print(f'mode: {mode}, winrate: {avg_score}')
 
 def mctsTrial(params):
-    outputFile1 = open(str(params[0]) + '.txt', 'a')
-
     mcts = MCTSAgent(params[0], params[1], params[2], params[3])
-    mcts.simulate(outputFile1)
+    return mcts.simulate()
 
-    outputFile1.close()
-
-def countWins(filename):
+def countWins(rewards):
     total = 0
     score = 0
-    with open(filename, 'r') as of:
-        for ch in of.read():
-            total += 1
-            if ch == 'w': score += 1
+    for digit in rewards:
+        total += 1
+        if digit:
+            score += 1
 
-    print(f'winrate: {score / total * 100}')
+    print(f'{mctsMode} winrate: {score / total * 100}')
 
 def objective(params):
     print(len(Game_Model.globals.decks['Encounter Deck'].cardList))
@@ -158,8 +154,8 @@ def main():
             params.append([mctsMode, playoutBudget, playoutsPerSimulation, playoutType])
 
         p = mp.Pool()
-        p.map(mctsTrial, params)
-        countWins(mctsMode + '.txt')
+        rewards = p.map(mctsTrial, params)
+        countWins(rewards)
 
 if __name__=='__main__':
     main()
