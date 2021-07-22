@@ -72,7 +72,7 @@ class Game():
     def expertQuesting(self):
         threatLevel = self.board.getCombinedThreat()
         playerCharacters = self.player.getAllCharacters()
-        playerCharacters.sort(key=lambda x: x.willpower / x.hitpoints, reverse=True)
+        playerCharacters.sort(key=lambda x: x.willpower / x.defense if x.defense else 0, reverse=True)
         combinedWillpower = 0
         if not playerCharacters:
             return
