@@ -42,12 +42,14 @@ class Game():
 
     def expertPlanning(self):
         gandalf = self.player.findCardInHandByName('Gandalf')
-        if gandalf and self.player.getResourcesBySphere('Neutral') >= 5:
-            self.player.spendResourcesBySphere(gandalf.sphere, gandalf.cost)
-            self.player.addToAllies(gandalf)
-        self.player.findAndSpend('Wandering Took')
-        self.player.findAndSpend('Rider of Rohan')
-        self.player.findAndSpend('Northern Tracker')
+        if gandalf:
+            if self.player.getResourcesBySphere('Neutral') >= 5:
+                self.player.spendResourcesBySphere(gandalf.sphere, gandalf.cost)
+                self.player.addToAllies(gandalf)
+            else:
+                self.player.findAndSpend('Wandering Took')
+        else:
+            self.randomPlanning()
 
     def planningPhase(self, cardId):
         return self.player.setCardForPlanning(cardId)
@@ -77,7 +79,7 @@ class Game():
         if not playerCharacters:
             return
         for card in playerCharacters:
-            if combinedWillpower < threatLevel:
+            if combinedWillpower < threatLevel + 2:
                 combinedWillpower += card.getWillpower()
                 card.tap() ### + set status???
         self.resolveQuesting(combinedWillpower)
