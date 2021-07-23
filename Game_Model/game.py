@@ -46,8 +46,10 @@ class Game():
             if self.player.getResourcesBySphere('Neutral') >= 5:
                 self.player.spendResourcesBySphere(gandalf.sphere, gandalf.cost)
                 self.player.addToAllies(gandalf)
-            else:
+                return
+            if self.player.getResourcesBySphere('Spirit') > 3:
                 self.player.findAndSpend('Wandering Took')
+                return
         else:
             self.randomPlanning()
 
@@ -140,7 +142,7 @@ class Game():
             untapped.sort(key=lambda x: x.defense, reverse=True)
         for enemy in enemiesEngaged:
             if not untapped:
-                self.player.randomUndefended(enemy.getAttack()) ## to optimise: select a hero with the highest hitpoints
+                self.player.expertUndefended(enemy.getAttack())
                 continue
             defender = untapped[0] ## take character with the highest defense
             result = defender.defense - enemy.attack

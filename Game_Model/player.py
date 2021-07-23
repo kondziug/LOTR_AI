@@ -176,6 +176,18 @@ class Player:
         else:
             Game_Model.globals.gameOver = True
 
+    def expertUndefended(self, attack):
+        if self.heroes:
+            self.heroes.sort(key=lambda x: x.hitpoints, reverse=True)
+            target = self.heroes[0]
+            target.takeDamage(attack)
+            if target.isDead():
+                target.setStatus(3)
+                self.graveyard.append(target)
+                self.heroes.remove(target)
+        else:
+            Game_Model.globals.gameOver = True
+
     def setCardForPlanning(self, cardId):
         if not self.hand:
             return False

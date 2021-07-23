@@ -9,10 +9,10 @@ from vanilla_mcts.mctsAgent import MCTSAgent
 import numpy as np
 from itertools import product
 import multiprocessing as mp
-# import tensorflow as tf
-# import logging
-# tf.get_logger().setLevel(logging.ERROR)
-# from hyperopt import tpe, hp, fmin
+import tensorflow as tf
+import logging
+tf.get_logger().setLevel(logging.ERROR)
+from hyperopt import tpe, hp, fmin
 
 Game_Model.globals.init()
 
@@ -24,9 +24,9 @@ pipeline = 0
 # 0 - enemies + round
 # 1 - enemies + lands + round
 # 2 - enemies + combined threat
-encoding = 2
+encoding = 1
 default_lr = 0.0003
-num_episodes = 10000
+num_episodes = 1000
 
 num_mctsTrials = 1
 mctsMode = 'eeeee'
@@ -37,16 +37,16 @@ playoutType = 0 ## 0 - random, 1 - expert
 best_avg = -1
 
 def sensitivityAnalysis(num_episodes):
-    # for mode in product('er', repeat=5):
-    #     agent = DefaultAgent(mode, num_episodes)
-    #     avg_score = agent.simulate()
-    #     print(f'mode: {mode}, winrate: {avg_score * 100}')
-
-    modes = ['reeee', 'eeeee']
-    for mode in modes:
+    for mode in product('er', repeat=5):
         agent = DefaultAgent(mode, num_episodes)
         avg_score = agent.simulate()
         print(f'mode: {mode}, winrate: {avg_score * 100}')
+
+    # modes = ['reeee', 'eeeee']
+    # for mode in modes:
+    #     agent = DefaultAgent(mode, num_episodes)
+    #     avg_score = agent.simulate()
+    #     print(f'mode: {mode}, winrate: {avg_score * 100}')
 
 def mctsTrial(params):
     mcts = MCTSAgent(params[0], params[1], params[2], params[3])

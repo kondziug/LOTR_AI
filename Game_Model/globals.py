@@ -13,7 +13,7 @@ def init():
     gameWin = False
 
     global difficulty
-    difficulty = 'hard'
+    difficulty = 'easy'
 
     global fullGame
     fullGame = False
