@@ -20,6 +20,11 @@ class Game():
         newGame.turn = self.turn
         return newGame
 
+    def applyCard(self, name):
+        card = self.board.encounterDeck.findCard(name)
+        self.board.addCard(card)
+        self.board.encounterDeck.getCardList().remove(card)
+
     def setupGame(self):
         self.board.scenarioSetup()
         self.player.shufflePlayerDeck()

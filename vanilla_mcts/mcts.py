@@ -14,6 +14,7 @@ class MCTS:
         self.playoutsPerSimulation = playoutsPerSimulation
         self.playoutType = playoutType ### 0 - random, 1 - expert
         self.uctConst = 1
+        self.omitStaging = False
         
     def uctFn(self, node):
         return node.getUtility() / node.getVisits() + self.uctConst * math.sqrt(2 * math.log(node.getParent().getVisits()) / node.getVisits())
@@ -41,17 +42,21 @@ class MCTS:
         return self.select(result, lvl)
 
     def expand(self, node):
-        if not node.getStage():
+        if self.omitStaging:
+            self.expandQuesting(node, True)
+            self.omitStaging = False
+            return
+        if not node.getStage() or node.getStage() == 'Defense':
             self.expandPlanning(node)
             return
         if node.getStage() == 'Planning':
-            self.expandQuesting(node)
+            self.expandStaging(node)
+            return
+        if node.getStage() == 'Staging':
+            self.expandQuesting(node, False)
             return
         if node.getStage() == 'Questing':
             self.expandDefense(node)
-            return
-        if node.getStage() == 'Defense':
-            self.expandPlanning(node)
             return
 
     def expandPlanning(self, node):
@@ -68,7 +73,7 @@ class MCTS:
             node.addChild(newNode)
             # print('Node with ' + name + ' added')
 
-    def expandQuesting(self, node):
+    def expandQuesting(self, node, withStaging):
         game = node.getGame()
         legalSubsets = self.findLegalsQuesting(game.getPlayer(), game.getBoard().getCombinedThreat())
         if not legalSubsets:
@@ -79,10 +84,19 @@ class MCTS:
             return
         for subset in legalSubsets:
             newGame = copy.deepcopy(game)
-            self.subsetQuesting(newGame, subset)
+            self.subsetQuesting(newGame, subset, withStaging)
             newNode = Node(newGame, node, 'Questing')
             node.addChild(newNode)
             # print('Node with subset: ' + self.getSubsetName(subset) + 'added')
+
+    def expandStaging(self, node):
+        game = node.getGame()
+        names = game.getBoard().getAllNamesOfEncounterDeck()
+        for name in names:
+            newGame = copy.deepcopy(game)
+            newGame.applyCard(name)
+            newNode = Node(newGame, node, 'Staging')
+            node.addChild(newNode)
 
     def expandDefense(self, node):
         game = node.getGame()
@@ -137,6 +151,8 @@ class MCTS:
         return decision
 
     def buildUpTree(self):
+        if self.rootNode.getStage() == 'Planning':
+            self.omitStaging = True
         while self.playoutBudget > 0:
             leafNode = self.select(self.rootNode, 0)
             self.expand(leafNode)
@@ -210,7 +226,7 @@ class MCTS:
     #         legalAttackers.append(Node(self.subsetToNames(playerCharacters)))
     #     return legalAttackers
 
-    def subsetQuesting(self, game, subset):
+    def subsetQuesting(self, game, subset, withStaging):
         if not subset:
             return
         combinedWillpower = 0
@@ -218,6 +234,8 @@ class MCTS:
             card = game.getPlayer().findCardInPlay(name)
             combinedWillpower += card.getWillpower()
             card.tap() ## + set status????
+        if withStaging:
+            game.getBoard().addToStagingArea()
         game.resolveQuesting(combinedWillpower)
 
     def subsetDefense(self, game, subset):

@@ -19,6 +19,18 @@ class Board:
     def getEncounterDeck(self):
         return self.encounterDeck.getCardList()
 
+    def getAllNamesOfEncounterDeck(self):
+        cardList = self.getEncounterDeck()
+        names = [cardList[0].getName()]
+        i = 1
+        while i < len(cardList):
+            name = cardList[i].getName()
+            i += 1
+            if names.count(name) > 0:
+                continue
+            names.append(name)
+        return names
+
     def getStagingArea(self):
         return self.stagingArea
 

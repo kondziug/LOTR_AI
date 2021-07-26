@@ -12,7 +12,7 @@ import multiprocessing as mp
 import tensorflow as tf
 import logging
 tf.get_logger().setLevel(logging.ERROR)
-from hyperopt import tpe, hp, fmin
+# from hyperopt import tpe, hp, fmin
 
 Game_Model.globals.init()
 
@@ -20,7 +20,7 @@ Game_Model.globals.init()
 # 1 - single RL run
 # 2 - optimization
 # 3 - mcts trial
-pipeline = 0
+pipeline = 3
 # 0 - enemies + round
 # 1 - enemies + lands + round
 # 2 - enemies + combined threat
@@ -28,8 +28,8 @@ encoding = 1
 default_lr = 0.0003
 num_episodes = 1000
 
-num_mctsTrials = 1
-mctsMode = 'eeeee'
+num_mctsTrials = 100
+mctsMode = 'emeee'
 playoutBudget = 40
 playoutsPerSimulation = 1
 playoutType = 0 ## 0 - random, 1 - expert
