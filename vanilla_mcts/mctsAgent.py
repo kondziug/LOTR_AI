@@ -48,7 +48,7 @@ class MCTSAgent:
         mcts = MCTS(self.rootNode, self.playoutBudget, self.playoutsPerSimulation, self.playoutType)
         self.rootNode = mcts.makeDecision()
         self.rootNode.resetFamily()
-        # self.rootNode.isTerminal()
+        self.rootNode.isTerminal()
 
     def simulatePlanning(self):
         if self.mode[0] == 'e':

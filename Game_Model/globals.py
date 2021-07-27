@@ -101,7 +101,7 @@ def initWithDict():
     gameWin = False
 
     global difficulty
-    difficulty = 'easy'
+    difficulty = 'hard'
 
     global fullGame
     fullGame = False

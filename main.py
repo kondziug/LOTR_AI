@@ -25,7 +25,7 @@ pipeline = 3
 # 1 - enemies + lands + round
 # 2 - enemies + combined threat
 encoding = 1
-default_lr = 0.0003
+default_lr = 0.0002
 num_episodes = 1000
 
 num_mctsTrials = 1
