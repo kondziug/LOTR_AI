@@ -18,6 +18,10 @@ class Player:
     def getHand(self):
         return self.hand
 
+    def setHandAndAllies(self, hand, allies):
+        self.hand = hand
+        self.allies = allies
+
     def findCardInHandById(self, cardId): # if hand is empty condition to add
         if not self.hand:
             return None

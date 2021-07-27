@@ -28,7 +28,7 @@ encoding = 1
 default_lr = 0.0003
 num_episodes = 1000
 
-num_mctsTrials = 100
+num_mctsTrials = 1
 mctsMode = 'emeee'
 playoutBudget = 40
 playoutsPerSimulation = 1

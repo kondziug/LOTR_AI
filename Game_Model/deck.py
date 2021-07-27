@@ -25,6 +25,11 @@ class Deck:
     def addCard(self, card):
         self.cardList.append(card)
 
+    def addCopies(self, card, number):
+        for _ in range(0, number):
+            tempCard = card.copy()
+            self.cardList.append(tempCard)
+
     def removeCard(self, card):
         self.cardList.remove(card)
 

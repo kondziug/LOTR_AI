@@ -34,8 +34,14 @@ class Board:
     def getStagingArea(self):
         return self.stagingArea
 
+    def setStagingArea(self, stagingArea):
+        self.stagingArea = stagingArea
+
     def getEnemiesEngaged(self):
         return self.engagementArea
+
+    def setEnemiesEngaged(self, enemiesEngaged):
+        self.engagementArea = enemiesEngaged
 
     def getGraveyard(self):
         return self.graveyard
@@ -55,6 +61,9 @@ class Board:
 
     def getActiveLand(self):
         return self.activeLand
+
+    def setActiveLand(self, activeLand):
+        self.activeLand = activeLand
 
     def getAllLands(self):
         lands = []
