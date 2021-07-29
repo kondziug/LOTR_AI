@@ -1,3 +1,5 @@
+from mainConfig import pipeline
+
 class Deck:
     def __init__(self, name):
         self.name = name
@@ -26,10 +28,18 @@ class Deck:
         self.cardList.append(card)
 
     def addCopies(self, card, number):
-        for _ in range(0, number):
-            tempCard = card.copy()
-            self.cardList.append(tempCard)
-
+        if pipeline == 3:
+            for _ in range(0, number):
+                tmpCard = card.copy()
+                self.cardList.append(tmpCard)
+            return
+        self.cardList.append(card)
+        while number > 1:
+            number -= 1
+            tmpCard = card.copy()
+            tmpCard.setId(card.getId() + number)
+            self.cardList.append(tmpCard)
+        
     def removeCard(self, card):
         self.cardList.remove(card)
 

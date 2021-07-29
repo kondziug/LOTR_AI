@@ -21,6 +21,8 @@ class Board:
 
     def getAllNamesOfEncounterDeck(self):
         cardList = self.getEncounterDeck()
+        if not cardList:
+            return
         names = [cardList[0].getName()]
         i = 1
         while i < len(cardList):

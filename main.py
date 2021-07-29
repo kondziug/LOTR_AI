@@ -6,6 +6,7 @@ from defaultAgent import DefaultAgent
 import Game_Model.globals
 from vanilla_AC.agent import Agent
 from vanilla_mcts.mctsAgent import MCTSAgent
+from mainConfig import pipeline, num_episodes, encoding, default_lr, mctsMode, playoutBudget, playoutsPerSimulation, playoutType
 import numpy as np
 from itertools import product
 import multiprocessing as mp
@@ -15,24 +16,6 @@ tf.get_logger().setLevel(logging.ERROR)
 # from hyperopt import tpe, hp, fmin
 
 Game_Model.globals.init()
-
-# 0 - sensitivty analysis
-# 1 - single RL run
-# 2 - optimization
-# 3 - mcts trial
-pipeline = 3
-# 0 - enemies + round
-# 1 - enemies + lands + round
-# 2 - enemies + combined threat
-encoding = 1
-default_lr = 0.0002
-num_episodes = 1000
-
-num_mctsTrials = 1
-mctsMode = 'emeee'
-playoutBudget = 40
-playoutsPerSimulation = 1
-playoutType = 0 ## 0 - random, 1 - expert
 
 best_avg = -1
 
@@ -156,7 +139,7 @@ def main():
         print(best)
     elif pipeline == 3:
         params = []
-        for _ in range(num_mctsTrials):
+        for _ in range(num_episodes):
             params.append([mctsMode, playoutBudget, playoutsPerSimulation, playoutType])
 
         p = mp.Pool()

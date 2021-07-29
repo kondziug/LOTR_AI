@@ -7,6 +7,9 @@ class Card:
     def getId(self):
         return self.id
 
+    def setId(self, id):
+        self.id = id
+
     def getName(self):
         return self.name
 

@@ -92,6 +92,10 @@ class MCTS:
     def expandStaging(self, node):
         game = node.createGame()
         names = game.getBoard().getAllNamesOfEncounterDeck()
+        if not names:
+            newNode = Node(game.getBoard(), game.getPlayer(), node, 'Staging')
+            node.addChild(newNode)
+            return
         for name in names:
             newGame = copy.deepcopy(game)
             newGame.applyCard(name)
@@ -192,7 +196,7 @@ class MCTS:
         for i in range(1, len(playerCharacters)):
             for subset in itertools.combinations(playerCharacters, i):
                 cardList = list(subset)
-                if self.getSubsetWillpower(cardList) > combinedThreat:
+                if self.getSubsetWillpower(cardList) > combinedThreat + 2:
                     legalNodes.append(self.subsetToNames(cardList))
         return legalNodes
 
