@@ -1,6 +1,7 @@
 from Game_Model.land import Land
 from Game_Model.enemy import Enemy
 import Game_Model.globals
+from mainConfig import difficulty
 
 class Board:
     def __init__(self, questDeck, encounterDeck):
@@ -103,7 +104,7 @@ class Board:
         self.combinedThreat += card.getThreat()
 
     def scenarioSetup(self):
-        if Game_Model.globals.difficulty == 'hard':
+        if difficulty == 'hard':
             forestSpider = self.encounterDeck.findCard('Forest Spider')
             self.addCard(forestSpider)
             self.encounterDeck.removeCard(forestSpider)

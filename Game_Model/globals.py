@@ -83,7 +83,7 @@ def init():
     global numberOfEnemies
     numberOfEnemies = 13 ## change when messing with enemy cards!!!!
 
-    if difficulty == 'hard':
+    if difficulty == 'hard' or difficulty == 'medium':
         encounterDeck.addCopies(dictOfCards['Necromancers Pass'], 1)
         encounterDeck.addCopies(dictOfCards['Enchanted Stream'], 2)
         encounterDeck.addCopies(dictOfCards['Old Forest Road'], 2)

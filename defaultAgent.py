@@ -83,7 +83,7 @@ class DefaultAgent:
                 self.game.refreshPhase()
             self.reset()
         self.hardReset()
-        return np.mean(score_history)
+        return score_history
 
 
 

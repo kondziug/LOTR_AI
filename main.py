@@ -22,14 +22,8 @@ best_avg = -1
 def sensitivityAnalysis(num_episodes):
     for mode in product('er', repeat=5):
         agent = DefaultAgent(mode, num_episodes)
-        avg_score = agent.simulate()
-        print(f'mode: {mode}, winrate: {avg_score * 100}')
-
-    # modes = ['reeee', 'eeeee']
-    # for mode in modes:
-    #     agent = DefaultAgent(mode, num_episodes)
-    #     avg_score = agent.simulate()
-    #     print(f'mode: {mode}, winrate: {avg_score * 100}')
+        rewards = agent.simulate()
+        countWins(rewards)
 
 def mctsTrial(params):
     mcts = MCTSAgent(params[0], params[1], params[2], params[3])
@@ -42,8 +36,10 @@ def countWins(rewards):
         total += 1
         if digit:
             score += 1
-
-    print(f'{mctsMode} winrate: {score / total * 100}')
+    winrate = score / total * 100
+    z = 1.96 # for 95% confidence level
+    interv = z * np.sqrt(winrate * (100 - winrate) / total)
+    print(f'{mctsMode} winrate: {winrate} ({np.around(interv, decimals=2)})')
 
 def objective(params):
     print(len(Game_Model.globals.decks['Encounter Deck'].cardList))
