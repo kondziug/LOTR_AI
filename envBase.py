@@ -63,11 +63,20 @@ class EnvBase(ABC):
             return self.featuresQuestingCritic(), -1, True
         return self.featuresQuestingCritic(), 0, False
 
-    def endRound(self):
-        self.game.expertTravelPhase()
+    def endRound(self, mode):
+        if mode[2] == 'e':
+            self.game.expertTravelPhase()
+        else:
+            self.game.randomTravelPhase()
         self.game.encounterPhase()
-        self.game.expertDefense()
-        self.game.expertAttack()
+        if mode[3] == 'e':
+            self.game.expertDefense()
+        else:
+            self.game.randomDefense()
+        if mode[4] == 'e':
+            self.game.expertAttack()
+        else:
+            self.game.randomAttack()
         self.game.refreshPhase()
         self.game.resourcePhase()
         self.updateHand()
