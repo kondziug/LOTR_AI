@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -20,9 +21,9 @@ class Agent():
         self.critic.save_weights(self.critic.filename)
         self.actor.save_weights(self.actor.filename)
 
-    def load_models(self):
-        self.critic.load_weights(self.critic.filename)
-        self.actor.load_weights(self.actor.filename)
+    def load_models(self, filename, name):
+        self.critic.load_weights(os.path.join('results', filename, name + '_critic'))
+        self.actor.load_weights(os.path.join('results', filename, name + '_actor'))
 
     def setState(self, observation):
         self.state = tf.convert_to_tensor([observation])

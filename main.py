@@ -13,7 +13,7 @@ import multiprocessing as mp
 import tensorflow as tf
 import logging
 tf.get_logger().setLevel(logging.ERROR)
-# from hyperopt import tpe, hp, fmin
+from hyperopt import tpe, hp, fmin
 
 Game_Model.globals.init()
 
@@ -48,8 +48,8 @@ def objective(params):
     critic_lr = params['lr']
     actor_lr = params['lr']
 
-    agent_planning = Agent('planning', critic_lr, actor_lr)
-    agent_questing = Agent('questing', critic_lr, actor_lr)
+    if rlMode[0] == 'l': agent_planning = Agent('planning', critic_lr, actor_lr)
+    if rlMode[1] == 'l': agent_questing = Agent('questing', critic_lr, actor_lr)
     if encoding == 0:
         env = Environment()
     elif encoding == 1:
@@ -63,8 +63,8 @@ def objective(params):
         Game_Model.globals.gameOver = False
         episode_done = False
         score = 0
-        agent_planning.reset()
-        agent_questing.reset()
+        if rlMode[0] == 'l': agent_planning.reset()
+        if rlMode[1] == 'l': agent_questing.reset()
         pobservation = env.reset()
         while not episode_done:
             ###################### Planning #######################
@@ -124,8 +124,8 @@ def objective(params):
 
     global best_avg
     if avg_score > best_avg and avg_score < 1:
-        agent_planning.save_models()
-        agent_questing.save_models()
+        if rlMode[0] == 'l': agent_planning.save_models()
+        if rlMode[1] == 'l': agent_questing.save_models()
         print(f'models saved with best avg: {avg_score}')
         best_avg = avg_score
 

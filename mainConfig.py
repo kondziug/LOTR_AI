@@ -10,7 +10,7 @@ num_episodes = 1000
 # 2 - enemies + combined threat
 encoding = 1
 default_lr = 0.0001
-rlMode = 'lrrrr'
+rlMode = 'rlrrr'
 
 ############################# mcts #######################
 mctsMode = ['rrrrr']
