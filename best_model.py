@@ -1,4 +1,6 @@
 from environment import Environment
+from environment1 import Environment1
+from environment2 import Environment2
 import Game_Model.globals
 from vanilla_AC.agent import Agent
 import numpy as np
@@ -27,7 +29,7 @@ def main():
     if filename[1] == 'l':
         agent_questing = Agent('questing')
         agent_questing.load_models(filename, 'questing')
-    env = Environment()
+    env = Environment() ############### set appriopriate env along with filename !!!!!!!!
     score_history = []
 
     for i in range(num_episodes):
