@@ -5,7 +5,7 @@ import tensorflow.keras as keras
 from tensorflow.keras.layers import Dense
 
 class CriticNetwork(keras.Model):
-    def __init__(self, name, fc1_dims=100, fc2_dims=100):
+    def __init__(self, name, fc1_dims=10, fc2_dims=10):
         super(CriticNetwork, self).__init__()
         self.filename = os.path.join('models', name + '_critic')
         self.fc1 = Dense(fc1_dims, activation='relu')
@@ -19,7 +19,7 @@ class CriticNetwork(keras.Model):
         return v
 
 class ActorNetwork(keras.Model):
-    def __init__(self, name, fc1_dims=100, fc2_dims=100, n_actions=2):
+    def __init__(self, name, fc1_dims=10, fc2_dims=10, n_actions=2):
         super(ActorNetwork, self).__init__()
         self.filename = os.path.join('models', name + '_actor')
         self.fc1 = Dense(fc1_dims, activation='relu')

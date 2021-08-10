@@ -2,6 +2,7 @@ from Game_Model.game import Game
 from environment import Environment
 from environment1 import Environment1
 from environment2 import Environment2
+from environment3 import Environment3
 from defaultAgent import DefaultAgent
 import Game_Model.globals
 from vanilla_AC.agent import Agent
@@ -20,7 +21,7 @@ Game_Model.globals.init()
 best_avg = -1
 
 def sensitivityAnalysis(num_episodes):
-    for mode in product('er', repeat=5):
+    for mode in product('r', repeat=5):
         agent = DefaultAgent(mode, num_episodes)
         rewards = agent.simulate()
         countWins(mode, rewards)
@@ -56,6 +57,8 @@ def objective(params):
         env = Environment1()
     elif encoding == 2:
         env = Environment2()
+    elif encoding == 3:
+        env = Environment3()
     score_history = []
 
     for i in range(num_episodes):

@@ -103,6 +103,8 @@ class Game():
         self.player.increaseThreat(abs(result))
 
     def randomTravelPhase(self):
+        if random.random() < 0.3:
+            return
         activeLand = self.board.getActiveLand()
         if activeLand:
             return

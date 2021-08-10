@@ -1,3 +1,4 @@
+from Game_Model.game import Game
 import random
 import Game_Model.globals
 from Game_Model.hero import Hero
@@ -142,7 +143,7 @@ class Player:
 
     def increaseThreat(self, threat):
         self.threat += threat
-        if self.threat >= 50 or not self.heroes:
+        if not Game_Model.globals.gameWin and self.threat >= 50 or not self.heroes:
             Game_Model.globals.gameOver = True
 
     def checkIfAllTapped(self):
@@ -178,7 +179,8 @@ class Player:
                 self.graveyard.append(randomHero)
                 self.heroes.remove(randomHero)
         else:
-            Game_Model.globals.gameOver = True
+            if not Game_Model.globals.gameWin:
+                Game_Model.globals.gameOver = True
 
     def expertUndefended(self, attack):
         if self.heroes:
@@ -190,7 +192,8 @@ class Player:
                 self.graveyard.append(target)
                 self.heroes.remove(target)
         else:
-            Game_Model.globals.gameOver = True
+            if not Game_Model.globals.gameWin:
+                Game_Model.globals.gameOver = True
 
     def setCardForPlanning(self, cardId):
         if not self.hand:

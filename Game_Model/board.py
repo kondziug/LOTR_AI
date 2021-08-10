@@ -128,6 +128,7 @@ class Board:
         if self.activeLand:
             self.activeLand.placeProgressTokens(progress)
             if self.activeLand.getPoints() <= 0:
+                self.questDeck.dealProgress(abs(self.activeLand.getPoints()))
                 self.graveyard.append(self.activeLand)
                 self.activeLand.setStatus(3)
                 self.activeLand.setPoints(0)
