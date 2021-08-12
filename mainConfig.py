@@ -2,7 +2,8 @@
 # 1 - single RL run
 # 2 - optimization
 # 3 - mcts trial
-pipeline = 1
+# 4 - single RL macro run
+pipeline = 4
 num_episodes = 1000
 ############################# RL ########################
 # 0 - enemies + round
@@ -11,7 +12,7 @@ num_episodes = 1000
 # 3 - combined threat + enemies engaged
 encoding = 1
 default_lr = 0.0001
-rlMode = 'llrrr'
+rlMode = 'lrrrr'
 
 ############################# mcts #######################
 mctsMode = ['rrrrr']

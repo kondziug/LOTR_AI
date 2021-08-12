@@ -7,10 +7,10 @@ import tensorflow_probability as tfp
 from vanilla_AC.networks import CriticNetwork, ActorNetwork
 
 class Agent():
-    def __init__(self, name, critic_lr=0.0001, actor_lr=0.0001, gamma=0.99):
+    def __init__(self, name, n_actions=2, critic_lr=0.0001, actor_lr=0.0001, gamma=0.99):
         self.critic = CriticNetwork(name)
         self.critic.compile(optimizer=Adam(learning_rate=critic_lr))
-        self.actor = ActorNetwork(name)
+        self.actor = ActorNetwork(name, n_actions)
         self.actor.compile(optimizer=Adam(learning_rate=actor_lr))
         self.gamma = gamma
         self.current_discount = 1.0

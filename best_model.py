@@ -1,6 +1,7 @@
 from environment import Environment
 from environment1 import Environment1
 from environment2 import Environment2
+from environment3 import Environment3
 import Game_Model.globals
 from vanilla_AC.agent import Agent
 import numpy as np
@@ -14,22 +15,18 @@ from mainConfig import difficulty
 
 Game_Model.globals.init()
 
-num_episodes = 1000
+num_episodes = 10000
 
-filename = 'lrrrr-hard-en1'
+filename = 'llrrr-hard-en3-test'
 
 def main():
-    if filename[6:10] != difficulty:
-        print('game difficulty mismatch')
-        return
-
     if filename[0] == 'l':
         agent_planning = Agent('planning')
         agent_planning.load_models(filename, 'planning')
     if filename[1] == 'l':
         agent_questing = Agent('questing')
         agent_questing.load_models(filename, 'questing')
-    env = Environment() ############### set appriopriate env along with filename !!!!!!!!
+    env = Environment3() ############### set appriopriate env along with filename !!!!!!!!
     score_history = []
 
     for i in range(num_episodes):

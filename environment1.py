@@ -1,6 +1,7 @@
 from envBase import EnvBase
 from numpy.lib.histograms import _histogram_bin_edges_dispatcher
 import Game_Model.globals
+from mainConfig import difficulty
 import numpy as np
 
 class Environment1(EnvBase): ## enemies + lands + round at questing
@@ -44,14 +45,14 @@ class Environment1(EnvBase): ## enemies + lands + round at questing
         stagedEnemies = self.game.getBoard().getStagedEnemies()
         lands = self.game.getBoard().getAllLands()
         digits = 3 + Game_Model.globals.numberOfAllies + Game_Model.globals.numberOfEnemies + 1 ## heroes + allies + enemies overall + round
-        if Game_Model.globals.difficulty == 'hard':
+        if difficulty == 'hard' or difficulty == 'medium':
             digits += Game_Model.globals.numberOfLands ## + lands over all
         state = np.zeros((len(cardsAvailable), digits)) 
         for row in range(len(cardsAvailable)):
             state[row][cardsAvailable[row].getId()] = 1
             for enemy in stagedEnemies:
                 state[row][enemy.getId()] = 1
-            if Game_Model.globals.difficulty == 'hard':
+            if difficulty == 'hard' or difficulty == 'medium':
                 for land in lands:
                     state[row][land.getId()] = 1
             state[row][-1] = self.game.getTurnNumber()
@@ -62,14 +63,14 @@ class Environment1(EnvBase): ## enemies + lands + round at questing
         stagedEnemies = self.game.getBoard().getStagedEnemies()
         lands = self.game.getBoard().getAllLands()
         digits = 3 + Game_Model.globals.numberOfAllies + Game_Model.globals.numberOfEnemies + 1 ## heroes + allies + enemies overall + round
-        if Game_Model.globals.difficulty == 'hard':
+        if difficulty == 'hard' or difficulty == 'medium':
             digits += Game_Model.globals.numberOfLands ## + lands overall
         state = np.zeros(digits) 
         for card in cardsAvailable:
             state[card.getId()] = 1
         for enemy in stagedEnemies:
             state[enemy.getId()] = 1
-        if Game_Model.globals.difficulty == 'hard':
+        if difficulty == 'hard' or difficulty == 'medium':
             for land in lands:
                 state[land.getId()] = 1
         state[-1] = self.game.getTurnNumber()

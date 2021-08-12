@@ -61,6 +61,23 @@ class Game():
     def planningPhase(self, cardId):
         return self.player.setCardForPlanning(cardId)
 
+    def macroPlanning(self, action):
+        budget = self.player.getResourcesBySphere('Spirit')
+        playerHand = self.player.getHand()
+        if action == 0: ## buy cheap
+            playerHand.sort(key=lambda x: x.cost)
+        elif action == 1: ## buy the best willpower
+            playerHand.sort(key=lambda x: x.willpower, reverse=True)
+        elif action == 2: ## buy the best defense
+            playerHand.sort(key=lambda x: x.defense, reverse=True)
+        for card in playerHand:
+            if card.cost < budget:
+                self.player.spendResourcesBySphere(card.sphere, card.cost)
+                self.player.addToAllies(card)
+                budget -= card.cost
+                if budget < 2:
+                    return
+
     def randomQuesting(self):
         combinedWillpower = 0
         playerCharacters = self.player.getAllCharacters()
@@ -101,6 +118,28 @@ class Game():
             self.board.dealProgress(result)
             return
         self.player.increaseThreat(abs(result))
+
+    def macroQuesting(self, action):
+        threatLevel = self.board.getCombinedThreat()
+        playerCharacters = self.player.getAllCharacters()
+        combinedWillpower = 0
+        if action == 0: ### play all-in
+            for card in playerCharacters:
+                combinedWillpower += card.getWillpower()
+                card.tap() ### + set status???
+        elif action == 1: ### play the strongest up to threshold
+            playerCharacters.sort(key=lambda x: x.willpower, reverse=True)
+            for card in playerCharacters:
+                if combinedWillpower < threatLevel:
+                    combinedWillpower += card.getWillpower()
+                    card.tap() ### + set status???
+        elif action == 2: ## play with the lowest defense
+            playerCharacters.sort(key=lambda x: x.defense)
+            for card in playerCharacters:
+                if combinedWillpower < threatLevel:
+                    combinedWillpower += card.getWillpower()
+                    card.tap() ### + set status???
+        self.resolveQuesting(combinedWillpower)
 
     def randomTravelPhase(self):
         if random.random() < 0.3:

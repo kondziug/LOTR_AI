@@ -19,7 +19,7 @@ class CriticNetwork(keras.Model):
         return v
 
 class ActorNetwork(keras.Model):
-    def __init__(self, name, fc1_dims=10, fc2_dims=10, n_actions=2):
+    def __init__(self, name, n_actions, fc1_dims=10, fc2_dims=10):
         super(ActorNetwork, self).__init__()
         self.filename = os.path.join('models', name + '_actor')
         self.fc1 = Dense(fc1_dims, activation='relu')
