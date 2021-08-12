@@ -210,7 +210,7 @@ def objectiveMacro(params):
         score_history.append(score)
 
         avg_score = np.mean(score_history[-100:])
-        if pipeline == 1 and i % 100 == 0:
+        if pipeline == 1 or pipeline == 4 and i % 100 == 0:
             print(f'episode: {i}, avg score: {avg_score}')
 
     env.hardReset()
