@@ -1,3 +1,4 @@
+from os import pipe
 from Game_Model.game import Game
 from environment import Environment
 from environment1 import Environment1
@@ -137,14 +138,17 @@ def objective(params):
 
 def objectiveMacro(params):
     from macroEnv import MacroEnv
+    from vanilla_q.agent import QAgent
     # print(len(Game_Model.globals.decks['Encounter Deck'].cardList))
     # print(len(Game_Model.globals.decks['Player Deck'].cardList))
 
     critic_lr = params['lr']
     actor_lr = params['lr']
 
-    if rlMode[0] == 'l': agent_planning = Agent('planning', 3, critic_lr, actor_lr)
-    if rlMode[1] == 'l': agent_questing = Agent('questing', 3, critic_lr, actor_lr)
+    if rlMode[0] == 'l' and pipeline == 4: agent_planning = Agent('planning', 3, critic_lr, actor_lr)
+    if rlMode[0] == 'l' and pipeline == 5: agent_planning = QAgent('planning', 3, params['lr'])
+    if rlMode[1] == 'l' and pipeline == 4: agent_questing = Agent('questing', 3, critic_lr, actor_lr)
+    if rlMode[1] == 'l' and pipeline == 5: agent_questing = QAgent('questing', 3, params['lr'])
     env = MacroEnv()
     score_history = []
 
@@ -160,18 +164,8 @@ def objectiveMacro(params):
             ###################### Planning #######################
             if rlMode[0] == 'l':
                 if len(env.featuresPlanning()) != 0:
-                    # agent_planning.setState(env.featuresPlanningActor())
                     planning_action = agent_planning.choose_action(pobservation)
-                    next_pobservation = env.step_planning(planning_action)
-
-                    # while True:
-                    #     current_planning_state = env.featuresPlanningActor()
-                    #     if not len(current_planning_state):
-                    #         break
-                    #     current_planning_action = agent_planning.choose_action_planning(current_planning_state)
-                    #     env.step_planning(current_planning_action)
-                    # agent_planning.setAction(env.planning_action)
-                    
+                    next_pobservation = env.step_planning(planning_action)      
             else:
                 env.game.randomPlanning()
                 reward = 0
@@ -199,10 +193,14 @@ def objectiveMacro(params):
                 episode_done = True
             
 
-            if rlMode[0] == 'l' and len(next_pobservation) != 0:
+            if rlMode[0] == 'l' and pipeline == 4 and len(next_pobservation) != 0:
                 agent_planning.learn(pobservation, reward, next_pobservation, episode_done)
-            if rlMode[1] == 'l' and len(next_qobservation) != 0:
+            if rlMode[0] == 'l' and pipeline == 5 and len(next_pobservation) != 0:
+                agent_planning.learn(planning_action[0], pobservation, reward, next_pobservation)
+            if rlMode[1] == 'l' and pipeline == 4 and len(next_qobservation) != 0:
                 agent_questing.learn(qobservation, reward, next_qobservation, episode_done)
+            if rlMode[1] == 'l' and pipeline == 5 and len(next_qobservation) != 0:
+                agent_questing.learn(questing_action[0], qobservation, reward, next_qobservation)
 
             pobservation = env.featuresPlanning()
             score += reward
@@ -210,7 +208,7 @@ def objectiveMacro(params):
         score_history.append(score)
 
         avg_score = np.mean(score_history[-100:])
-        if pipeline == 1 or pipeline == 4 and i % 100 == 0:
+        if pipeline == 4 or pipeline == 5 and i % 100 == 0:
             print(f'episode: {i}, avg score: {avg_score}')
 
     env.hardReset()
@@ -251,7 +249,7 @@ def main():
             p = mp.Pool()
             rewards = p.map(mctsTrial, params)
             countWins(mode, rewards)
-    elif pipeline == 4:
+    elif pipeline == 4 or pipeline == 5:
         space = { 'lr': default_lr }
         avg_score = objectiveMacro(space)
         print(f'episode: {num_episodes}, avg score: {avg_score}')
