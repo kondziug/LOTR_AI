@@ -1,11 +1,8 @@
 from os import pipe
 from Game_Model.game import Game
-from environment import Environment
-from environment1 import Environment1
-from environment2 import Environment2
-from environment3 import Environment3
 from defaultAgent import DefaultAgent
 import Game_Model.globals
+from envs.lowLevelEnv import LowLevelEnv
 from vanilla_AC.agent import Agent
 from vanilla_mcts.mctsAgent import MCTSAgent
 from mainConfig import pipeline, num_episodes, rlMode, encoding, default_lr, mctsMode, playoutBudget, playoutsPerSimulation, playoutType
@@ -52,14 +49,7 @@ def objective(params):
 
     if rlMode[0] == 'l': agent_planning = Agent('planning', 2, critic_lr, actor_lr)
     if rlMode[1] == 'l': agent_questing = Agent('questing', 2, critic_lr, actor_lr)
-    if encoding == 0:
-        env = Environment()
-    elif encoding == 1:
-        env = Environment1()
-    elif encoding == 2:
-        env = Environment2()
-    elif encoding == 3:
-        env = Environment3()
+    env = LowLevelEnv(encoding)
     score_history = []
 
     for i in range(num_episodes):
@@ -73,26 +63,26 @@ def objective(params):
         while not episode_done:
             ###################### Planning #######################
             if rlMode[0] == 'l':
-                if len(env.featuresPlanningActor()) != 0:
-                    agent_planning.setState(env.featuresPlanningActor())
+                if len(env.encoder.encodePlanning('actor')) != 0:
+                    agent_planning.setState(env.encoder.encodePlanning('actor'))
 
                     while True:
-                        current_planning_state = env.featuresPlanningActor()
+                        current_planning_state = env.encoder.encodePlanning('actor')
                         if not len(current_planning_state):
                             break
                         current_planning_action = agent_planning.choose_action_planning(current_planning_state)
                         env.step_planning(current_planning_action)
                     agent_planning.setAction(env.planning_action)
-                    next_pobservation = env.featuresPlanningCritic()
+                    next_pobservation = env.encoder.encodePlanning('critic')
             else:
                 env.game.randomPlanning()
                 reward = 0
                 
             ###################### Questing ########################
             if rlMode[1] == 'l':
-                qobservation = env.featuresQuestingCritic()
-                if len(env.featuresQuestingActor()) != 0:
-                    questing_action = agent_questing.choose_action(env.featuresQuestingActor())
+                qobservation = env.encoder.encodeQuesting('critic')
+                if len(env.encoder.encodeQuesting('actor')) != 0:
+                    questing_action = agent_questing.choose_action(env.encoder.encodeQuesting('actor'))
                     next_qobservation, reward, episode_done = env.step_questing(questing_action)
             elif rlMode[1] == 'e':
                 env.game.expertQuesting()
@@ -111,12 +101,12 @@ def objective(params):
                 episode_done = True
             
 
-            if rlMode[0] == 'l' and len(env.featuresPlanningActor()) != 0:
+            if rlMode[0] == 'l' and len(env.encoder.encodePlanning('actor')) != 0:
                 agent_planning.learn(pobservation, reward, next_pobservation, episode_done)
-            if rlMode[1] == 'l' and len(env.featuresQuestingActor()) != 0:
+            if rlMode[1] == 'l' and len(env.encoder.encodeQuesting('actor')) != 0:
                 agent_questing.learn(qobservation, reward, next_qobservation, episode_done)
 
-            pobservation = env.featuresPlanningCritic()
+            pobservation = env.encoder.encodePlanning('critic')
             score += reward
 
         score_history.append(score)
@@ -208,7 +198,7 @@ def objectiveMacro(params):
         score_history.append(score)
 
         avg_score = np.mean(score_history[-100:])
-        if pipeline == 4 or pipeline == 5 and i % 100 == 0:
+        if (pipeline == 4 or pipeline == 5) and i % 100 == 0:
             print(f'episode: {i}, avg score: {avg_score}')
 
     env.hardReset()

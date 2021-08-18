@@ -4,15 +4,15 @@
 # 3 - mcts trial
 # 4 - single RL macro run
 # 5 - single RLQ macro run
-pipeline = 5
-num_episodes = 1000
+pipeline = 1
+num_episodes = 10000
 ############################# RL ########################
 # 0 - enemies + round
 # 1 - enemies + lands + round
 # 2 - enemies + combined threat
 # 3 - combined threat + enemies engaged
 encoding = 1
-default_lr = 0.00001
+default_lr = 0.0001
 rlMode = 'llrrr'
 
 ############################# mcts #######################
