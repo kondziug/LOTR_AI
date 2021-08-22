@@ -1,4 +1,5 @@
 from os import pipe
+import simulators
 from Game_Model.game import Game
 from defaultAgent import DefaultAgent
 import Game_Model.globals
@@ -13,6 +14,9 @@ import tensorflow as tf
 import logging
 tf.get_logger().setLevel(logging.ERROR)
 from hyperopt import tpe, hp, fmin
+
+from simulators.lowLevelSimulator import LowLevelSimulator
+from simulators.macroSimulator import MacroSimulator
 
 Game_Model.globals.init()
 
@@ -127,7 +131,7 @@ def objective(params):
     return -avg_score
 
 def objectiveMacro(params):
-    from macroEnv import MacroEnv
+    from envs.macroEnv import MacroEnv
     from vanilla_q.agent import QAgent
     # print(len(Game_Model.globals.decks['Encounter Deck'].cardList))
     # print(len(Game_Model.globals.decks['Player Deck'].cardList))
@@ -139,7 +143,7 @@ def objectiveMacro(params):
     if rlMode[0] == 'l' and pipeline == 5: agent_planning = QAgent('planning', 3, params['lr'])
     if rlMode[1] == 'l' and pipeline == 4: agent_questing = Agent('questing', 3, critic_lr, actor_lr)
     if rlMode[1] == 'l' and pipeline == 5: agent_questing = QAgent('questing', 3, params['lr'])
-    env = MacroEnv()
+    env = MacroEnv(encoding)
     score_history = []
 
     for i in range(num_episodes):
@@ -153,7 +157,7 @@ def objectiveMacro(params):
         while not episode_done:
             ###################### Planning #######################
             if rlMode[0] == 'l':
-                if len(env.featuresPlanning()) != 0:
+                if len(env.encoder.encodePlanning('macro')) != 0:
                     planning_action = agent_planning.choose_action(pobservation)
                     next_pobservation = env.step_planning(planning_action)      
             else:
@@ -162,8 +166,8 @@ def objectiveMacro(params):
                 
             ###################### Questing ########################
             if rlMode[1] == 'l':
-                qobservation = env.featuresQuesting()
-                if len(env.featuresQuesting()) != 0:
+                qobservation = env.encoder.encodeQuesting('macro')
+                if len(env.encoder.encodeQuesting('macro')) != 0:
                     questing_action = agent_questing.choose_action(qobservation)
                     next_qobservation, reward, episode_done = env.step_questing(questing_action)
             elif rlMode[1] == 'e':
@@ -192,7 +196,7 @@ def objectiveMacro(params):
             if rlMode[1] == 'l' and pipeline == 5 and len(next_qobservation) != 0:
                 agent_questing.learn(questing_action[0], qobservation, reward, next_qobservation)
 
-            pobservation = env.featuresPlanning()
+            pobservation = env.encoder.encodePlanning('macro')
             score += reward
 
         score_history.append(score)
@@ -216,9 +220,15 @@ def main():
     if pipeline == 0:
         sensitivityAnalysis(num_episodes)
     elif pipeline == 1:
+        # space = { 'lr': default_lr }
+        # avg_score = objective(space)
+        # print(f'episode: {num_episodes}, avg score: {avg_score}')
+
         space = { 'lr': default_lr }
-        avg_score = objective(space)
+        simulator = LowLevelSimulator()
+        avg_score = simulator.objective(space)
         print(f'episode: {num_episodes}, avg score: {avg_score}')
+
     elif pipeline == 2:
         space = {
             'lr': hp.loguniform('lr', -8, -6), #### nope
@@ -240,8 +250,13 @@ def main():
             rewards = p.map(mctsTrial, params)
             countWins(mode, rewards)
     elif pipeline == 4 or pipeline == 5:
+        # space = { 'lr': default_lr }
+        # avg_score = objectiveMacro(space)
+        # print(f'episode: {num_episodes}, avg score: {avg_score}')
+
         space = { 'lr': default_lr }
-        avg_score = objectiveMacro(space)
+        simulator = MacroSimulator()
+        avg_score = simulator.objective(space)
         print(f'episode: {num_episodes}, avg score: {avg_score}')
 
 if __name__=='__main__':

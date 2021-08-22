@@ -20,7 +20,7 @@ class LowLevelEnv(BaseEnv):
         self.planning_action[idx] = 1
         return
 
-    def step_questing(self, action):
+    def step_questing(self, action): ## remove game condition check????
         if len(action) == 1:
             action = np.squeeze(action, axis=0)
         else:
