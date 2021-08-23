@@ -65,11 +65,19 @@ class Game():
         budget = self.player.getResourcesBySphere('Spirit')
         playerHand = self.player.getHand()
         if action == 0: ## buy cheap
-            playerHand.sort(key=lambda x: x.cost)
+            playerHand.sort(key=lambda x: 1 / x.cost, reverse=True)
         elif action == 1: ## buy the best willpower
-            playerHand.sort(key=lambda x: x.willpower, reverse=True)
-        elif action == 2: ## buy the best defense
-            playerHand.sort(key=lambda x: x.defense, reverse=True)
+            playerHand.sort(key=lambda x: x.willpower / x.cost, reverse=True)
+        elif action == 2:
+            playerHand.sort(key=lambda x: (0.8 * x.willpower + 0.2 * x.defense) / x.cost, reverse=True)
+        elif action == 3:
+            playerHand.sort(key=lambda x: (0.6 * x.willpower + 0.4 * x.defense) / x.cost, reverse=True)
+        elif action == 4:
+            playerHand.sort(key=lambda x: (0.4 * x.willpower + 0.6 * x.defense) / x.cost, reverse=True)
+        elif action == 5:
+            playerHand.sort(key=lambda x: (0.2 * x.willpower + 0.8 * x.defense) / x.cost, reverse=True)
+        elif action == 6: ## buy the best defense
+            playerHand.sort(key=lambda x: x.defense / x.cost, reverse=True)
         for card in playerHand:
             if card.cost < budget:
                 self.player.spendResourcesBySphere(card.sphere, card.cost)
@@ -129,17 +137,34 @@ class Game():
                 card.tap() ### + set status???
         elif action == 1: ### play the strongest up to threshold
             playerCharacters.sort(key=lambda x: x.willpower, reverse=True)
-            for card in playerCharacters:
-                if combinedWillpower < threatLevel:
-                    combinedWillpower += card.getWillpower()
-                    card.tap() ### + set status???
-        elif action == 2: ## play with the lowest defense
+            self.setCardsUpToThreatLevel(playerCharacters, threatLevel)
+        elif action == 2:
+            playerCharacters.sort(key=lambda x: 0.8 * x.willpower + 0.2 * x.defense, reverse=True)
+            self.setCardsUpToThreatLevel(playerCharacters, threatLevel)
+        elif action == 3:
+            playerCharacters.sort(key=lambda x: 0.6 * x.willpower + 0.4 * x.defense, reverse=True)
+            self.setCardsUpToThreatLevel(playerCharacters, threatLevel)
+        elif action == 4:
+            playerCharacters.sort(key=lambda x: 0.4 * x.willpower + 0.6 * x.defense, reverse=True)
+            self.setCardsUpToThreatLevel(playerCharacters, threatLevel)
+        elif action == 5:
+            playerCharacters.sort(key=lambda x: 0.2 * x.willpower + 0.8 * x.defense, reverse=True)
+            self.setCardsUpToThreatLevel(playerCharacters, threatLevel)
+        elif action == 6: ## play with the lowest defense
             playerCharacters.sort(key=lambda x: x.defense)
             for card in playerCharacters:
                 if combinedWillpower < threatLevel:
                     combinedWillpower += card.getWillpower()
                     card.tap() ### + set status???
         self.resolveQuesting(combinedWillpower)
+
+    def setCardsUpToThreatLevel(self, cardList, threatLevel):
+        combinedWillpower = 0
+        for card in cardList:
+            if combinedWillpower < threatLevel:
+                combinedWillpower += card.getWillpower()
+                card.tap() ### + set status???
+        return combinedWillpower
 
     def randomTravelPhase(self):
         if random.random() < 0.3:

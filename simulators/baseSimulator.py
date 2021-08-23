@@ -101,8 +101,8 @@ class BaseSimulator(ABC):
         self.env.hardReset()
 
         if avg_score > self.best_avg and avg_score < 1:
-            if rlMode[0] == 'l': self.agent_planning.save_models()
-            if rlMode[1] == 'l': self.agent_questing.save_models()
+            if rlMode[0] == 'l': self.agent_planning().save_models()
+            if rlMode[1] == 'l': self.agent_questing().save_models()
             print(f'models saved with best avg: {avg_score}')
             self.best_avg = avg_score
 
