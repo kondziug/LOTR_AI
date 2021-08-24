@@ -15,8 +15,8 @@ class LowLevelSimulator(BaseSimulator):
         return self.agent_q
 
     def setAgents(self, params):
-        if rlMode[0] == 'l': self.agent_p = Agent('planning', 2, params['lr'], params['lr'])
-        if rlMode[1] == 'l': self.agent_q = Agent('questing', 2, params['lr'], params['lr'])
+        if rlMode[0] == 'l': self.agent_p = Agent('planning', 2, params['lr'], params['lr'], params['n_neurons'])
+        if rlMode[1] == 'l': self.agent_q = Agent('questing', 2, params['lr'], params['lr'], params['n_neurons'])
 
     def rlPlanning(self, observation):
         if len(self.env.encoder.encodePlanning('actor')) != 0:

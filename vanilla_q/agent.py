@@ -6,8 +6,8 @@ from tensorflow.keras.optimizers import Adam
 from vanilla_q.networks import Qnetwork
 
 class QAgent():
-    def __init__(self, name, n_actions, lr=0.00001, gamma=0.99):
-        self.q_network = Qnetwork(name, n_actions)
+    def __init__(self, name, n_actions, lr=0.00001, n_neurons=100, gamma=0.99):
+        self.q_network = Qnetwork(name, n_actions, n_neurons)
         self.q_network.compile(optimizer=Adam(learning_rate=lr))
         self.gamma = gamma
 

@@ -34,10 +34,10 @@ class LowLevelEnv(BaseEnv):
             return self.encoder.encodeQuesting('critic'), -1, True
         combinedWillpower = self.game.getPlayer().setCardsForQuesting(cardList)
         self.game.resolveQuesting(combinedWillpower)
-        if Game_Model.globals.gameWin:
-            return self.encoder.encodeQuesting('critic'), 1, True
-        if Game_Model.globals.gameOver:
-            return self.encoder.encodeQuesting('critic'), -1, True
+        # if Game_Model.globals.gameWin:
+        #     return self.encoder.encodeQuesting('critic'), 1, True
+        # if Game_Model.globals.gameOver:
+        #     return self.encoder.encodeQuesting('critic'), -1, True
         return self.encoder.encodeQuesting('critic'), 0, False
 
     def endRound(self, mode):

@@ -4,7 +4,7 @@
 # 3 - mcts trial
 # 4 - single RL macro run
 # 5 - single RLQ macro run
-pipeline = 4
+pipeline = 1
 num_episodes = 1000
 ############################# RL ########################
 # 0 - enemies + round
@@ -12,7 +12,8 @@ num_episodes = 1000
 # 2 - enemies + combined threat
 # 3 - combined threat + enemies engaged
 encoding = 1
-default_lr = 0.0001
+default_lr = 0.00005
+n_neurons = 20
 rlMode = 'llrrr'
 
 ############################# mcts #######################

@@ -1,9 +1,10 @@
+from os import pipe
 import numpy as np
 from abc import ABC, abstractmethod, abstractproperty
 import Game_Model.globals
 from envs.lowLevelEnv import LowLevelEnv
 from envs.macroEnv import MacroEnv
-from mainConfig import pipeline, encoding, rlMode, num_episodes
+from mainConfig import pipeline, encoding, rlMode, n_neurons, num_episodes, difficulty
 
 class BaseSimulator(ABC):
     def __init__(self):
@@ -97,13 +98,53 @@ class BaseSimulator(ABC):
             avg_score = np.mean(score_history[-100:])
             if i % 100 == 0:
                 print(f'episode: {i}, avg score: {avg_score}')
+                if avg_score > self.best_avg:
+                    dirname = rlMode + 'p' + str(pipeline) + 'en' + str(encoding) + 'nn' + str(n_neurons) + difficulty
+                    if rlMode[0] == 'l': self.agent_planning().save_models(dirname, 'planning')
+                    if rlMode[1] == 'l': self.agent_questing().save_models(dirname, 'questing')
+                    print(f'models saved with best avg: {avg_score}')
+                    self.best_avg = avg_score
 
         self.env.hardReset()
 
-        if avg_score > self.best_avg and avg_score < 1:
-            if rlMode[0] == 'l': self.agent_planning().save_models()
-            if rlMode[1] == 'l': self.agent_questing().save_models()
-            print(f'models saved with best avg: {avg_score}')
-            self.best_avg = avg_score
-
         return -avg_score
+
+    def loadAndTest(self):
+        params = { 'lr': 0.0001, 'n_neurons': n_neurons }
+        self.setAgents(params)
+        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(encoding) + 'nn' + str(n_neurons) + difficulty
+        if rlMode[0] == 'l': self.agent_planning().load_models(dirname, 'planning')
+        if rlMode[1] == 'l': self.agent_questing().load_models(dirname, 'questing')
+
+        score_history = []
+
+        for i in range(num_episodes):
+            Game_Model.globals.gameWin = False
+            Game_Model.globals.gameOver = False
+            episode_done = False
+            score = 0
+            if rlMode[0] == 'l': self.agent_planning().reset()
+            if rlMode[1] == 'l': self.agent_questing().reset()
+            pobservation = self.env.reset()
+            while not episode_done:
+                reward = 0
+                self.simulatePlanning(pobservation)
+                    
+                self.simulateQuesting()
+
+                self.env.endRound(rlMode)
+
+                if Game_Model.globals.gameWin:
+                    reward = 1
+                    episode_done = True
+                if Game_Model.globals.gameOver and not Game_Model.globals.gameWin:
+                    reward = 0
+                    episode_done = True
+                
+                pobservation = self.env.encoder.encodePlanning('critic')
+                score += reward
+
+            score_history.append(score)
+
+        return score_history
+

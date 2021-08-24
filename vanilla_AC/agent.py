@@ -7,23 +7,23 @@ import tensorflow_probability as tfp
 from vanilla_AC.networks import CriticNetwork, ActorNetwork
 
 class Agent():
-    def __init__(self, name, n_actions=2, critic_lr=0.0001, actor_lr=0.0001, gamma=0.99):
-        self.critic = CriticNetwork(name)
+    def __init__(self, name, n_actions=2, critic_lr=0.0001, actor_lr=0.0001, n_neurons=100, gamma=0.99):
+        self.critic = CriticNetwork(name, n_neurons, n_neurons)
         self.critic.compile(optimizer=Adam(learning_rate=critic_lr))
-        self.actor = ActorNetwork(name, n_actions)
+        self.actor = ActorNetwork(name, n_actions, n_neurons, n_neurons)
         self.actor.compile(optimizer=Adam(learning_rate=actor_lr))
         self.gamma = gamma
         self.current_discount = 1.0
         self.state = None
         self.action = None
 
-    def save_models(self):
-        self.critic.save_weights(self.critic.filename)
-        self.actor.save_weights(self.actor.filename)
+    def save_models(self, dirname, filename):
+        self.critic.save_weights(os.path.join('results/', dirname, filename + '_critic'))
+        self.actor.save_weights(os.path.join('results/', dirname, filename + '_actor'))
 
-    def load_models(self, filename, name):
-        self.critic.load_weights(os.path.join('results', filename, name + '_critic'))
-        self.actor.load_weights(os.path.join('results', filename, name + '_actor'))
+    def load_models(self, dirname, name):
+        self.critic.load_weights(os.path.join('results', dirname, name + '_critic'))
+        self.actor.load_weights(os.path.join('results', dirname, name + '_actor'))
 
     def setState(self, observation):
         self.state = tf.convert_to_tensor([observation])

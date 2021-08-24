@@ -18,11 +18,11 @@ class MacroSimulator(BaseSimulator):
 
     def setAgents(self, params):
         if rlMode[0] == 'l':
-            if pipeline == 4: self.agent_p = Agent('planning', 7, params['lr'], params['lr'])
-            elif pipeline == 5: self.agent_p = QAgent('planning', 7, params['lr'])
+            if pipeline == 4: self.agent_p = Agent('planning', 7, params['lr'], params['lr'], params['n_neurons'])
+            elif pipeline == 5: self.agent_p = QAgent('planning', 7, params['lr'], params['n_neurons'])
         if rlMode[1] == 'l':
-            if pipeline == 4: self.agent_q = Agent('questing', 7, params['lr'], params['lr'])
-            elif pipeline == 5: self.agent_q = QAgent('questing', 7, params['lr'])
+            if pipeline == 4: self.agent_q = Agent('questing', 7, params['lr'], params['lr'], params['n_neurons'])
+            elif pipeline == 5: self.agent_q = QAgent('questing', 7, params['lr'], params['n_neurons'])
         
     def rlPlanning(self, observation):
         if len(self.env.encoder.encodePlanning('macro')) != 0:

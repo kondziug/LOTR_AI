@@ -17,6 +17,26 @@ class BaseEncoder(ABC):
         row[-1] = self.game.getPlayer().getResourcesBySphere('Spirit')
         return row
 
+    def createRowPlanningFull(self):
+        cardPool = self.game.getPlayer().getHeroes() + self.game.getPlayer().getCardPool() + self.game.getBoard().getCardPool()
+        stateVector = [0] * (3 * 3 + 15 * 2 + 25 * 2 + 2) ## to optimize
+        for card in cardPool:
+            cardId = card.getId()
+            if cardId < 3:
+                stateVector[3 * cardId] = card.getStatus()
+                stateVector[3 * cardId + 1] = card.getHitpoints()
+                stateVector[3 * cardId + 2] = card.getResourcePool()
+            elif cardId >= 3 and cardId < 31: # both allies and enemies here
+                stateVector[2 * (cardId - 3) + 9] = card.getStatus()
+                stateVector[2 * (cardId - 3) + 10] = card.getHitpoints()
+            else: # lands here
+                stateVector[2 * (cardId - 31) + 65] = card.getStatus() 
+                stateVector[2 * (cardId - 31) + 66] = card.getPoints() 
+        stateVector[-2] = self.game.getPlayer().getThreat()
+        stateVector[-1] = self.game.getBoard().getQuestDeck().getTotalProgress()
+        return stateVector
+
+
     @abstractmethod
     def createRowQuesting(self):
         pass
