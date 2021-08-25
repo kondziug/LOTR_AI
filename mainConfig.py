@@ -13,7 +13,7 @@ num_episodes = 1000
 # 3 - combined threat + enemies engaged
 encoding = 1
 default_lr = 0.00005
-n_neurons = 20
+n_neurons = 100
 rlMode = 'llrrr'
 
 ############################# mcts #######################

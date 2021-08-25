@@ -4,13 +4,14 @@ from abc import ABC, abstractmethod, abstractproperty
 import Game_Model.globals
 from envs.lowLevelEnv import LowLevelEnv
 from envs.macroEnv import MacroEnv
-from mainConfig import pipeline, encoding, rlMode, n_neurons, num_episodes, difficulty
+from mainConfig import pipeline, rlMode, n_neurons, num_episodes, difficulty
 
 class BaseSimulator(ABC):
-    def __init__(self):
+    def __init__(self, encoding):
+        self.encoding = encoding
         self.env = None
         self.setEnv()
-        self.best_avg = -1
+        self.best_global_avg = -1
 
     @property
     @abstractmethod
@@ -27,9 +28,9 @@ class BaseSimulator(ABC):
 
     def setEnv(self):
         if pipeline == 1 or pipeline == 2:
-            self.env = LowLevelEnv(encoding)
+            self.env = LowLevelEnv(self.encoding)
         elif pipeline == 4 or pipeline == 5:
-            self.env = MacroEnv(encoding)
+            self.env = MacroEnv(self.encoding)
 
     @abstractmethod
     def rlPlanning(self, observation): # returns planning_action, next_pobservation
@@ -62,6 +63,7 @@ class BaseSimulator(ABC):
     def objective(self, params):
         self.setAgents(params)
 
+        best_local_avg = -1
         score_history = []
 
         for i in range(num_episodes):
@@ -97,22 +99,28 @@ class BaseSimulator(ABC):
 
             avg_score = np.mean(score_history[-100:])
             if i % 100 == 0:
-                print(f'episode: {i}, avg score: {avg_score}')
-                if avg_score > self.best_avg:
-                    dirname = rlMode + 'p' + str(pipeline) + 'en' + str(encoding) + 'nn' + str(n_neurons) + difficulty
+                if avg_score > best_local_avg:
+                    best_local_avg = avg_score
+                if best_local_avg > self.best_global_avg:
+                    nn = params['n_neurons']
+                    dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(nn) + difficulty
                     if rlMode[0] == 'l': self.agent_planning().save_models(dirname, 'planning')
                     if rlMode[1] == 'l': self.agent_questing().save_models(dirname, 'questing')
-                    print(f'models saved with best avg: {avg_score}')
-                    self.best_avg = avg_score
+                    print(f'model with {nn} neurons saved with best global avg: {self.best_global_avg}')
+                    self.best_global_avg = best_local_avg
+
+                # print(f'episode: {i}, avg score: {avg_score}')
+                    
 
         self.env.hardReset()
 
-        return -avg_score
+        print(f'best local avg: {best_local_avg}')
+        return -best_local_avg
 
     def loadAndTest(self):
         params = { 'lr': 0.0001, 'n_neurons': n_neurons }
         self.setAgents(params)
-        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(encoding) + 'nn' + str(n_neurons) + difficulty
+        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(n_neurons) + difficulty
         if rlMode[0] == 'l': self.agent_planning().load_models(dirname, 'planning')
         if rlMode[1] == 'l': self.agent_questing().load_models(dirname, 'questing')
 

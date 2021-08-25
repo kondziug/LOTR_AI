@@ -5,8 +5,8 @@ from vanilla_q.agent import QAgent
 from mainConfig import pipeline, rlMode
 
 class MacroSimulator(BaseSimulator):
-    def __init__(self):
-        super(MacroSimulator, self).__init__()
+    def __init__(self, encoding):
+        super(MacroSimulator, self).__init__(encoding)
         self.agent_p = None
         self.agent_q = None
 

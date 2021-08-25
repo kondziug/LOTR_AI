@@ -3,8 +3,8 @@ from vanilla_AC.agent import Agent
 from mainConfig import rlMode
 
 class LowLevelSimulator(BaseSimulator):
-    def __init__(self):
-        super(LowLevelSimulator, self).__init__()
+    def __init__(self, encoding):
+        super(LowLevelSimulator, self).__init__(encoding)
         self.agent_p = None
         self.agent_q = None
 
