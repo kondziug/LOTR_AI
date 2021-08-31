@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod, abstractproperty
 import Game_Model.globals
 from envs.lowLevelEnv import LowLevelEnv
 from envs.macroEnv import MacroEnv
-from mainConfig import pipeline, rlMode, n_neurons, num_episodes, difficulty
+from mainConfig import pipeline, rlMode, num_episodes, difficulty
 
 class BaseSimulator(ABC):
     def __init__(self, encoding):
@@ -117,10 +117,9 @@ class BaseSimulator(ABC):
         print(f'best local avg: {best_local_avg}')
         return -best_local_avg
 
-    def loadAndTest(self):
-        params = { 'lr': 0.0001, 'n_neurons': n_neurons }
+    def loadAndTest(self, params):
         self.setAgents(params)
-        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(n_neurons) + difficulty
+        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(params['n_neurons']) + difficulty
         if rlMode[0] == 'l': self.agent_planning().load_models(dirname, 'planning')
         if rlMode[1] == 'l': self.agent_questing().load_models(dirname, 'questing')
 

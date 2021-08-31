@@ -2,8 +2,8 @@
 # 1 - single RL run
 # 2 - optimization
 # 3 - mcts trial
-# 4 - single RL macro run
-# 5 - single RLQ macro run
+# 4 - RL macro optimization
+# 5 - RLQ macro optimization
 pipeline = 1
 num_episodes = 1000
 ############################# RL ########################

@@ -77,10 +77,20 @@ def main():
             rewards = p.map(mctsTrial, params)
             countWins(mode, rewards)
     elif pipeline == 4 or pipeline == 5:
-        space = { 'lr': default_lr }
-        simulator = MacroSimulator()
-        avg_score = simulator.objective(space)
-        print(f'episode: {num_episodes}, avg score: {avg_score}')
+        encodings = [0, 1, 2, 3]
+        for en in encodings:
+            simulator = MacroSimulator(en)
+            space = {
+                'lr': hp.loguniform('lr', -10, -7), #### nope
+                'n_neurons': hp.choice('n_neurons', [50, 100, 150, 200])
+            }
+            best = fmin(
+                fn=simulator.objective,
+                space=space,
+                algo=tpe.suggest,
+                max_evals=100
+            )
+            print(best)
 
 if __name__=='__main__':
     main()
