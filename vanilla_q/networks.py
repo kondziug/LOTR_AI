@@ -7,7 +7,6 @@ from tensorflow.keras.layers import Dense
 class Qnetwork(keras.Model):
     def __init__(self, name, n_actions, fc1_dims=100):
         super(Qnetwork, self).__init__()
-        self.filename = os.path.join('models', name + '_qnetwork')
         self.fc1 = Dense(fc1_dims, activation='relu')
         self.q_values = Dense(n_actions, activation=None)
 

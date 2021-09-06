@@ -11,11 +11,11 @@ class QAgent():
         self.q_network.compile(optimizer=Adam(learning_rate=lr))
         self.gamma = gamma
 
-    def save_models(self):
-        self.q_network.save_weights(self.q_network.filename)
+    def save_models(self, dirname, filename):
+        self.q_network.save_weights(os.path.join('results/', dirname, filename + '_qnetwork'))
 
-    def load_models(self, filename, name):
-        self.q_network.load_weights(os.path.join('results', filename, name + '_qnetwork'))
+    def load_models(self, dirname, filename):
+        self.q_network.load_weights(os.path.join('results/', dirname, filename + '_qnetwork'))
 
     def choose_action(self, observation):
         state = tf.convert_to_tensor([observation])
