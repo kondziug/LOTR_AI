@@ -8,6 +8,7 @@ import Game_Model.globals
 from vanilla_mcts.mctsAgent import MCTSAgent
 from mainConfig import pipeline, num_episodes, n_neurons, default_lr, mctsMode, playoutBudget, playoutsPerSimulation, playoutType
 import numpy as np
+import matplotlib.pyplot as plt
 from itertools import product
 import multiprocessing as mp
 # import tensorflow as tf
@@ -44,6 +45,14 @@ def countWins(mode, rewards):
     interv = z * np.sqrt(winrate * (100 - winrate) / total)
     print(f'{mode} winrate: {winrate} ({np.around(interv, decimals=2)})')
 
+def plotScoreHistory(score_history):
+    x = np.arange(100, num_episodes + 1)
+    moving_avg = np.convolve(score_history, np.ones(100), 'valid') / 100
+    plt.plot(x, moving_avg)
+    plt.xlabel('episode')
+    plt.ylabel('winrate')
+    plt.show()
+
 def main():
     if pipeline == 0:
         sensitivityAnalysis(num_episodes)
@@ -51,7 +60,8 @@ def main():
         encoding = 1
         space = { 'lr': default_lr, 'n_neurons': n_neurons }
         simulator = LowLevelSimulator(encoding)
-        avg_score = simulator.objective(space)
+        avg_score, score_history = simulator.objective(space)
+        plotScoreHistory(score_history)
     elif pipeline == 2:
         encodings = [0, 1, 2, 3]
         for en in encodings:
