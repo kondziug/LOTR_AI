@@ -97,19 +97,20 @@ class BaseSimulator(ABC):
 
             score_history.append(score)
 
-            avg_score = np.mean(score_history[-100:])
-            if i % 100 == 0:
+            avg_score = np.mean(score_history[-1000:])
+            if i % 100 == 0 and i > 1000:
                 if avg_score > best_local_avg:
                     best_local_avg = avg_score
                 if best_local_avg > self.best_global_avg and pipeline != 1:
                     nn = params['n_neurons']
+                    lr = params['lr']
                     dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(nn) + difficulty
                     if rlMode[0] == 'l': self.agent_planning().save_models(dirname, 'planning')
                     if rlMode[1] == 'l': self.agent_questing().save_models(dirname, 'questing')
-                    print(f'model with {nn} neurons saved with best global avg: {self.best_global_avg}')
+                    print(f'model with {nn} neurons, lr: {lr} saved with best global avg: {self.best_global_avg}')
                     self.best_global_avg = best_local_avg
 
-                print(f'episode: {i}, avg score: {avg_score}')
+                # print(f'episode: {i}, avg score: {avg_score}')
                     
 
         self.env.hardReset()

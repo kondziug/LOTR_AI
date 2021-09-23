@@ -53,6 +53,19 @@ def plotScoreHistory(score_history):
     plt.ylabel('winrate')
     plt.show()
 
+def plotScoreHistoryFromFile():
+    x = np.arange(100, num_episodes + 1)
+    x1 = np.arange(1000, num_episodes + 1)
+    score_history = np.loadtxt('score_history.txt')
+    moving_avg = np.convolve(score_history, np.ones(100), 'valid') / 100
+    moving_avg1 = np.convolve(score_history, np.ones(1000), 'valid') / 1000
+    plt.plot(x, moving_avg)
+    plt.plot(x1, moving_avg1)
+    plt.xlabel('episode')
+    plt.ylabel('avg_score')
+    figName = 'p' + str(pipeline) + 'nn' + str(n_neurons) +'.png'
+    plt.savefig(figName)
+
 def main():
     if pipeline == 0:
         sensitivityAnalysis(num_episodes)
@@ -61,13 +74,13 @@ def main():
         space = { 'lr': default_lr, 'n_neurons': n_neurons }
         simulator = LowLevelSimulator(encoding)
         avg_score, score_history = simulator.objective(space)
-        plotScoreHistory(score_history)
+        # plotScoreHistory(score_history)
     elif pipeline == 2:
-        encodings = [0, 1, 2, 3]
+        encodings = [0, 1]
         for en in encodings:
             simulator = LowLevelSimulator(en)
             space = {
-                'lr': hp.loguniform('lr', -10, -7), #### nope
+                'lr': hp.loguniform('lr', -9, -7),
                 'n_neurons': hp.choice('n_neurons', [50, 100, 150, 200])
             }
             best = fmin(

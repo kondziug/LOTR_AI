@@ -5,7 +5,7 @@
 # 4 - RL macro optimization
 # 5 - RLQ macro optimization
 pipeline = 1
-num_episodes = 200
+num_episodes = 2000
 ############################# RL ########################
 # 0 - enemies + round
 # 1 - enemies + lands + round
@@ -13,7 +13,7 @@ num_episodes = 200
 # 3 - combined threat + enemies engaged
 encoding = 1
 default_lr = 0.0002
-n_neurons = 10
+n_neurons = 100
 rlMode = 'llrrr'
 
 ############################# mcts #######################
