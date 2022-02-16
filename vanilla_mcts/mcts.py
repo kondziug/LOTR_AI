@@ -280,7 +280,8 @@ class MCTS:
                     break
             Game_Model.globals.gameWin = False
             Game_Model.globals.gameOver = False
-        # print('Player wins ' + str(score))
+        Game_Model.globals.gameWin = False
+        Game_Model.globals.gameOver = False
         return wins
 
     def simulatePlanning(self, game):
@@ -315,6 +316,8 @@ class MCTS:
                 self.doTurn(tmpGame)
             Game_Model.globals.gameWin = False
             Game_Model.globals.gameOver = False
+        Game_Model.globals.gameWin = False
+        Game_Model.globals.gameOver = False
         return wins
 
     def simulateQuesting(self, game):
@@ -347,6 +350,8 @@ class MCTS:
                 self.doTurn(tmpGame)
             Game_Model.globals.gameWin = False
             Game_Model.globals.gameOver = False
+        Game_Model.globals.gameWin = False
+        Game_Model.globals.gameOver = False
         return wins
 
     def doTurn(self, game):

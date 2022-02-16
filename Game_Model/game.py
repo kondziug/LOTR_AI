@@ -5,6 +5,7 @@ class Game():
         self.board = board
         self.player = player
         self.turn = 0
+        self.turnsWithoutDecision = [0, 0, 0, 0, 0] # planning, questing, travel, defense, attack
 
     def getBoard(self):
         return self.board
@@ -36,10 +37,10 @@ class Game():
     def randomPlanning(self):
         playerHand = self.player.getHand()
         if not playerHand:
+            self.turnsWithoutDecision[0] += 1
             return
-        for _ in range(6):
-            if not playerHand or random.random() < 0.1:
-                return
+        slen = random.randint(0, len(playerHand))
+        for _ in range(slen):
             card = random.choice(playerHand)
             if self.player.getResourcesBySphere(card.sphere) >= card.cost:
                 self.player.spendResourcesBySphere(card.sphere, card.cost)
@@ -90,15 +91,16 @@ class Game():
         combinedWillpower = 0
         playerCharacters = self.player.getAllCharacters()
         if not playerCharacters:
+            self.turnsWithoutDecision[1] += 1
             return
         slen = random.randint(0, len(playerCharacters))
-        if not slen:
-            return
-        for _ in range(slen):
+        i = 0
+        while i < slen:
             card = random.choice(playerCharacters)
             if not card.isTapped():
                 combinedWillpower += card.getWillpower()
                 card.tap()
+                i += 1
             if self.player.checkIfAllTapped():
                 break
         self.resolveQuesting(combinedWillpower)
@@ -167,15 +169,17 @@ class Game():
         return combinedWillpower
 
     def randomTravelPhase(self):
-        if random.random() < 0.3:
-            return
         activeLand = self.board.getActiveLand()
         if activeLand:
+            self.turnsWithoutDecision[2] += 1
             return
         lands = self.board.getAllLands()
         if not lands:
+            self.turnsWithoutDecision[2] += 1
             return
+        lands.append(None)
         land = random.choice(lands)
+        if not land: return
         self.board.travelToLocation(land)
 
     def expertTravelPhase(self): # to optimize!!!!!!!!!!!!!! - points to threat ratio should exceed kind of threshold????
@@ -193,6 +197,9 @@ class Game():
         enemiesEngaged = self.board.getEnemiesEngaged()
         if not enemiesEngaged:
             return
+        untapped = self.player.getUntappedCharacters()
+        if not untapped:
+            self.turnsWithoutDecision[3] += 1
         for enemy in enemiesEngaged:
             defender = self.player.declareRandomDefender()
             if defender:
@@ -236,6 +243,7 @@ class Game():
         enemiesEngaged = self.board.getEnemiesEngaged()
         untappedCharacters = self.player.getUntappedCharacters()
         if not untappedCharacters or not enemiesEngaged:
+            self.turnsWithoutDecision[4] += 1
             return
         slen = random.randint(0, len(untappedCharacters))
         if not slen:
@@ -280,6 +288,22 @@ class Game():
         threat = self.player.getThreat()
         self.board.doEngagementChecks(threat)
 
+    def getDecisionProbs(self):
+        probs = []
+        for dNum in self.turnsWithoutDecision:
+            prob = (self.turn - dNum) / self.turn * 100
+            probs.append(round(prob, 2))
+        return probs
+
+    def typeOfLoss(self, episodesFailHeroes, episodesFailThreat):
+        if not self.player.getHeroes():
+            episodesFailHeroes.append(self.turn)
+            return
+        if self.player.getThreat() >= 50:
+            episodesFailThreat.append(self.turn)
+            return
+        print('smth went wrong')
+
     def refreshPhase(self):
         self.board.endTurn()
         self.player.endTurn()
@@ -289,3 +313,4 @@ class Game():
         self.board.reset()
         self.player.reset()
         self.turn = 0
+        self.turnsWithoutDecision = [0, 0, 0, 0, 0]

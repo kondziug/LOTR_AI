@@ -22,8 +22,11 @@ class MCTSAgent:
         self.playoutBudget = playoutBudget
         self.playoutsPerSimulation = playoutsPerSimulation
         self.playoutType = playoutType
+        self.turnNumber = 0
 
     def simulate(self):
+        success = None
+        fail = None
         while 1:
             if self.simulatePlanning():
                 break
@@ -31,13 +34,16 @@ class MCTSAgent:
                 break
             if self.simulateDefense():
                 break
+            self.turnNumber += 1
         if Game_Model.globals.gameWin:
+            success = self.turnNumber
             reward = 1
         if Game_Model.globals.gameOver:
+            fail = self.turnNumber
             reward = 0
         Game_Model.globals.gameOver = False
         Game_Model.globals.gameWin = False
-        return reward
+        return reward, success, fail
 
     def checkIfLoseWin(self):
         if Game_Model.globals.gameOver or Game_Model.globals.gameWin:

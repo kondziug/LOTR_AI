@@ -12,6 +12,10 @@ class DefaultAgent:
         board = Board(Game_Model.globals.decks['Quest Deck'], Game_Model.globals.decks['Encounter Deck'])
         self.game = Game(board, player)
         self.game.setupGame()
+        self.episodeProbs = []
+        self.episodesSuccess = []
+        self.episodesFailHeroes = []
+        self.episodesFailThreat = []
 
     def planningPhase(self):
         if self.mode[0] == 'r':
@@ -69,9 +73,11 @@ class DefaultAgent:
             while 1:
                 if Game_Model.globals.gameWin:
                     score_history.append(1)
+                    self.episodesSuccess.append(self.game.getTurnNumber())
                     break
                 if Game_Model.globals.gameOver:
                     score_history.append(0)
+                    self.game.typeOfLoss(self.episodesFailHeroes, self.episodesFailThreat)
                     break
                 self.game.resourcePhase()
                 self.planningPhase()
@@ -81,9 +87,19 @@ class DefaultAgent:
                 self.defensePhase()
                 self.attackPhase()
                 self.game.refreshPhase()
+            probs = self.game.getDecisionProbs()
+            self.episodeProbs.append(probs)
             self.reset()
         self.hardReset()
         return score_history
+
+    def getDecisionProbs(self):
+        return np.mean(self.episodeProbs, axis=0)
+
+    def getEpisodeLengths(self):
+        return self.episodesSuccess, self.episodesFailHeroes, self.episodesFailThreat
+
+
 
 
 

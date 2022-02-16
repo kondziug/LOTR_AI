@@ -50,7 +50,7 @@ class BaseSimulator(ABC):
         if rlMode[1] == 'l':
             return self.rlQuesting()
         self.env.game.randomQuesting()
-        return None, None, None
+        return None, None, None, 0, False
 
     @abstractmethod
     def learnPlanning(self, observation, action, reward, next_observation, episode_done):
@@ -102,12 +102,14 @@ class BaseSimulator(ABC):
                 if avg_score > best_local_avg:
                     best_local_avg = avg_score
                 if best_local_avg > self.best_global_avg and pipeline != 1:
-                    nn = params['n_neurons']
-                    lr = params['lr']
-                    dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(nn) + difficulty
+                    lrp = params['lrp']
+                    lrq = params['lrq']
+                    nnp = params['n_neurons_p']
+                    nnq = params['n_neurons_q']
+                    dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnp' + str(nnp) + 'nnq' + str(nnq) + difficulty + 'dr'
                     if rlMode[0] == 'l': self.agent_planning().save_models(dirname, 'planning')
                     if rlMode[1] == 'l': self.agent_questing().save_models(dirname, 'questing')
-                    print(f'model with {nn} neurons, lr: {lr} saved with best global avg: {self.best_global_avg}')
+                    print(f'model with lrp {lrp}, lrq: {lrq}, nnp: {nnp}, nnq: {nnq} saved with best global avg: {self.best_global_avg}')
                     self.best_global_avg = best_local_avg
 
                 # print(f'episode: {i}, avg score: {avg_score}')
@@ -122,7 +124,10 @@ class BaseSimulator(ABC):
 
     def loadAndTest(self, params):
         self.setAgents(params)
-        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(params['n_neurons']) + difficulty
+        # for double optimization
+        # dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnp' + str(params['n_neurons_p']) + 'nnq' + str(params['n_neurons_q']) + difficulty + 'dr'
+        # for single optimization
+        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(params['n_neurons_q']) + difficulty
         if rlMode[0] == 'l': self.agent_planning().load_models(dirname, 'planning')
         if rlMode[1] == 'l': self.agent_questing().load_models(dirname, 'questing')
 
