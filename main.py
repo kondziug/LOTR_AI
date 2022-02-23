@@ -29,13 +29,13 @@ def sensitivityAnalysis(num_episodes):
     #     rewards = agent.simulate()
     #     countWins(mode, rewards)
     
-    agent = DefaultAgent(mctsMode, num_episodes)
+    agent = DefaultAgent('rrrrr', num_episodes)
     rewards = agent.simulate()
     success, failHeroes, failThreat = agent.getEpisodeLengths()
     saveEpisodesTotxt(success, failHeroes, failThreat)
     # probs = agent.getDecisionProbs()
     # print(probs)
-    # countWins(mctsMode, rewards)
+    countWins(mctsMode, rewards)
 
 
 ########################################################################
@@ -57,9 +57,10 @@ def mctsPlayoutbudget():
         params = []
         for _ in range(1000):
             params.append([mctsMode, budget, playoutsPerSimulation, playoutType])
-
         p = mp.Pool()
-        rewards = p.map(mctsTrial, params)
+        rewards = []
+        for reward, _, _ in p.map(mctsTrialNuevo, params):
+            rewards.append(reward)
         print(f'Budget: {budget}:')
         countWins(mctsMode, rewards)
 

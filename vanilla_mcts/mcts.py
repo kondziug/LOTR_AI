@@ -1,3 +1,4 @@
+from re import sub
 from Game_Model.game import Game
 from Game_Model.ally import Ally
 import Game_Model.globals
@@ -28,6 +29,7 @@ class MCTS:
             # print('Node ' + node.getName() + ' selected')
             return node
         children = node.getChildren()
+        random.shuffle(children)
         for child in children:
             if child.getVisits() == 0:
                 # print('Node ' + child.getName() + ' selected')
@@ -41,26 +43,41 @@ class MCTS:
                 result = child
         return self.select(result, lvl)
 
+    # def expand(self, node):
+    #     if self.omitStaging:
+    #         self.expandQuesting(node, True)
+    #         self.omitStaging = False
+    #         return
+    #     if not node.getStage() or node.getStage() == 'Defense':
+    #         self.expandPlanning(node)
+    #         return
+    #     if node.getStage() == 'Planning':
+    #         self.expandStaging(node)
+    #         return
+    #     if node.getStage() == 'Staging':
+    #         self.expandQuesting(node, False)
+    #         return
+    #     if node.getStage() == 'Questing':
+    #         self.expandDefense(node)
+    #         return
+
+##################################################
+
     def expand(self, node):
-        if self.omitStaging:
-            self.expandQuesting(node, True)
-            self.omitStaging = False
-            return
         if not node.getStage() or node.getStage() == 'Defense':
             self.expandPlanning(node)
             return
         if node.getStage() == 'Planning':
-            self.expandStaging(node)
-            return
-        if node.getStage() == 'Staging':
-            self.expandQuesting(node, False)
+            self.expandQuesting(node, True)
             return
         if node.getStage() == 'Questing':
             self.expandDefense(node)
             return
 
+##################################################
+
     def expandPlanning(self, node):
-        game = node.createGame()
+        game = node.getGame()
         game.resourcePhase()
         legalCards = self.findLegalsPlanning(game.getPlayer())
         for name in legalCards:
@@ -69,28 +86,27 @@ class MCTS:
                 card = newGame.getPlayer().findCardInHandByName(name)
                 newGame.getPlayer().spendResourcesBySphere(card.sphere, card.cost)
                 newGame.getPlayer().addToAllies(card)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Planning')
+            newNode = Node(newGame, node, 'Planning')
             node.addChild(newNode)
             # print('Node with ' + name + ' added')
 
     def expandQuesting(self, node, withStaging):
-        game = node.createGame()
+        game = node.getGame()
         legalSubsets = self.findLegalsQuesting(game.getPlayer(), game.getBoard().getCombinedThreat())
         if not legalSubsets:
             newGame = copy.deepcopy(game)
             newGame.resolveQuesting(0)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Questing')
+            newNode = Node(newGame, node, 'Questing')
             node.addChild(newNode)
             return
         for subset in legalSubsets:
             newGame = copy.deepcopy(game)
             self.subsetQuesting(newGame, subset, withStaging)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Questing')
+            newNode = Node(newGame, node, 'Questing')
             node.addChild(newNode)
-            # print('Node with subset: ' + self.getSubsetName(subset) + 'added')
 
     def expandStaging(self, node):
-        game = node.createGame()
+        game = node.getGame()
         names = game.getBoard().getAllNamesOfEncounterDeck()
         if not names:
             newNode = Node(game.getBoard(), game.getPlayer(), node, 'Staging')
@@ -99,18 +115,18 @@ class MCTS:
         for name in names:
             newGame = copy.deepcopy(game)
             newGame.applyCard(name)
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Staging')
+            newNode = Node(newGame, node, 'Staging')
             node.addChild(newNode)
 
     def expandDefense(self, node):
-        game = node.createGame()
+        game = node.getGame()
         game.randomTravelPhase()
         game.encounterPhase()
         legalSubsets = self.findLegalsDefense(game.getBoard(), game.getPlayer())
         if not legalSubsets:
             newGame = copy.deepcopy(game)
             newGame.refreshPhase()
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Defense')
+            newNode = Node(newGame, node, 'Defense')
             node.addChild(newNode)
             return
         for subset in legalSubsets:
@@ -118,7 +134,7 @@ class MCTS:
             self.subsetDefense(newGame, subset)
             newGame.randomAttack() ##################### sure??
             newGame.refreshPhase()
-            newNode = Node(newGame.getBoard(), newGame.getPlayer(), node, 'Defense')
+            newNode = Node(newGame, node, 'Defense')
             node.addChild(newNode)
 
     def backpropagate(self, node, score):
@@ -129,13 +145,13 @@ class MCTS:
 
     def simulate(self, node):
         score = 0
-        game = node.createGame()
+        game = node.getGame()
         if not node.getStage() or node.getStage() == 'Defense':
             score = self.simulateComplete(game)
         if node.getStage() == 'Planning':
             score = self.simulatePlanning(game)
-        if node.getStage() == 'Staging':
-            self.playoutBudget -= 1
+        # if node.getStage() == 'Staging':
+        #     self.playoutBudget -= 1
         if node.getStage() == 'Questing':
             score = self.simulateQuesting(game)
         return score
@@ -143,13 +159,14 @@ class MCTS:
     def makeDecision(self):
         self.buildUpTree()
         children = self.rootNode.getChildren()
+        # random.shuffle(children)
         score = 0
         decision = None
         for child in children:
             if child.getVisits() == 0:
                 continue
             newscore = self.uctFn(child)
-            if newscore >= score:
+            if newscore > score:
                 score = newscore
                 decision = child
         return decision
@@ -185,10 +202,16 @@ class MCTS:
         legalCards = []
         legalCards.append('None')
         playerHand = player.getHand()
+        # gandalf = player.findCardInHandByName('Gandalf')
+        # if gandalf and player.getResourcesBySphere(gandalf.sphere) > 4:
+        #     legalCards.append('Gandalf')
+        #     return legalCards
         for card in playerHand:
             if not card.getName() in legalCards and player.getResourcesBySphere(card.sphere) >= card.cost:
                 legalCards.append(card.getName())
         return legalCards
+
+    #####################################################################
 
     def findLegalsQuesting(self, player, combinedThreat): # to optimise: player to mainGame.getPlayer()
         playerCharacters = player.getAllCharacters()
@@ -198,6 +221,7 @@ class MCTS:
                 cardList = list(subset)
                 if self.getSubsetWillpower(cardList) > combinedThreat + 2:
                     legalNodes.append(self.subsetToNames(cardList))
+                # legalNodes.append(self.subsetToNames(cardList))
         return legalNodes
 
     def findLegalsDefense(self, board, player):
@@ -207,8 +231,9 @@ class MCTS:
         playerCharacters = player.getAllCharacters()
         legalDefenders = []
         for subset in itertools.combinations(playerCharacters, len(enemiesEngaged)):
-            # if not self.containsAllyTapped(list(subset)):
-            legalDefenders.append(self.subsetToNames(list(subset)))
+            if not self.containsAllyTapped(list(subset)):
+                legalDefenders.append(self.subsetToNames(list(subset)))
+            # legalDefenders.append(self.subsetToNames(list(subset)))
         return legalDefenders
 
     # def findLegalsAttack(self): ######################## do not erase!!!!!!!!!!!!!!
@@ -238,8 +263,6 @@ class MCTS:
             card = game.getPlayer().findCardInPlay(name)
             combinedWillpower += card.getWillpower()
             card.tap() ## + set status????
-        if withStaging:
-            game.getBoard().addToStagingArea()
         game.resolveQuesting(combinedWillpower)
 
     def subsetDefense(self, game, subset):
@@ -280,8 +303,6 @@ class MCTS:
                     break
             Game_Model.globals.gameWin = False
             Game_Model.globals.gameOver = False
-        Game_Model.globals.gameWin = False
-        Game_Model.globals.gameOver = False
         return wins
 
     def simulatePlanning(self, game):
@@ -316,8 +337,6 @@ class MCTS:
                 self.doTurn(tmpGame)
             Game_Model.globals.gameWin = False
             Game_Model.globals.gameOver = False
-        Game_Model.globals.gameWin = False
-        Game_Model.globals.gameOver = False
         return wins
 
     def simulateQuesting(self, game):
@@ -350,8 +369,6 @@ class MCTS:
                 self.doTurn(tmpGame)
             Game_Model.globals.gameWin = False
             Game_Model.globals.gameOver = False
-        Game_Model.globals.gameWin = False
-        Game_Model.globals.gameOver = False
         return wins
 
     def doTurn(self, game):

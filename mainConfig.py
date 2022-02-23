@@ -5,7 +5,7 @@
 # 4 - RL macro optimization
 # 5 - RLQ macro optimization
 pipeline = 3
-num_episodes = 10000
+num_episodes = 1000
 ############################# RL ########################
 # 0 - enemies + round
 # 1 - enemies + lands + round
@@ -17,7 +17,7 @@ n_neurons = 50
 rlMode = 'rlrrr'
 
 ############################# mcts #######################
-mctsMode = 'mrrrr'
+mctsMode = 'rrrrr'
 playoutBudget = 40
 playoutsPerSimulation = 1
 playoutType = 0 ## 0 - random, 1 - expert
