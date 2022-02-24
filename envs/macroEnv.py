@@ -13,6 +13,10 @@ class MacroEnv(BaseEnv):
     def step_questing(self, action):
         self.game.macroQuesting(action[0])
         return self.encoder.encodeQuesting('macro'), 0, False
+    
+    def step_defense(self, action):
+        self.game.macroDefense(action[0])
+        return self.encoder.encodeDefense('macro'), 0, False
 
     def reset(self):
         super().reset()

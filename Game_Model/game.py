@@ -209,6 +209,41 @@ class Game():
             else:
                 self.player.randomUndefended(enemy.attack)
 
+    def macroDefense(self, action):
+        playerCharacters = self.player.getUntappedCharacters()
+        enemiesEngaged = self.board.getEnemiesEngaged()
+        defenders = []
+        dlen = min(len(playerCharacters), len(enemiesEngaged))
+        if action == 0: # play the strongest in defense
+            playerCharacters.sort(key=lambda x: x.defense + x.hitpoints, reverse=True)
+            for i in range(dlen):
+                defenders.append(playerCharacters[i])
+        elif action == 1: # play the strongest without full enemy coverage or play without defense
+            playerCharacters.sort(key=lambda x: x.defense + x.hitpoints, reverse=True) # sort from the highest
+            if dlen > 1:
+                for i in range(dlen - 1):
+                    defenders.append(playerCharacters[i])
+        elif action == 2: # play with saving cards for questing
+            playerCharacters.sort(key=lambda x: x.willpower, reverse=False) # sort from the lowest
+            for i in range(dlen):
+                defenders.append(playerCharacters[i])
+        elif action == 3: # play without defense
+            pass
+        self.resolveDefense(defenders)
+
+    def resolveDefense(self, defenders):
+        enemiesEngaged = self.board.getEnemiesEngaged()
+        enemiesEngaged.sort(key=lambda x: x.attack, reverse=True) # sort from the strongest enemies
+        for enemy in enemiesEngaged:
+            if not defenders:
+                self.player.randomUndefended(enemy.attack)
+                continue
+            defender = defenders.pop(0)
+            defender.tap() # + set status?
+            result = defender.defense - enemy.attack
+            if result < 0:
+                defender.takeDamage(abs(result))
+
     def expertDefense(self): # to optimise!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
         # print('Expert Defense Phase:')
         enemiesEngaged = self.board.getEnemiesEngaged() 

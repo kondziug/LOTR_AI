@@ -9,12 +9,16 @@ class MacroSimulator(BaseSimulator):
         super(MacroSimulator, self).__init__(encoding)
         self.agent_p = None
         self.agent_q = None
+        self.agent_d = None
 
     def agent_planning(self):
         return self.agent_p
 
     def agent_questing(self):
         return self.agent_q
+
+    def agent_defense(self):
+        return self.agent_d
 
     def setAgents(self, params):
         if rlMode[0] == 'l':
@@ -23,6 +27,9 @@ class MacroSimulator(BaseSimulator):
         if rlMode[1] == 'l':
             if pipeline == 4: self.agent_q = Agent('questing', 7, params['lr'], params['lr'], params['n_neurons'])
             elif pipeline == 5: self.agent_q = QAgent('questing', 7, params['lr'], params['n_neurons'])
+        if rlMode[3] == 'l':
+            if pipeline == 4: self.agent_d = Agent('defense', 4, params['lr'], params['lr'], params['n_neurons'])
+            elif pipeline == 5: self.agent_d = QAgent('defense', 4, params['lr'], params['n_neurons'])
         
     def rlPlanning(self, observation):
         if len(self.env.encoder.encodePlanning('macro')) != 0:
@@ -36,7 +43,15 @@ class MacroSimulator(BaseSimulator):
             action = self.agent_q.choose_action(observation)
             next_observation, reward, episode_done = self.env.step_questing(action)
             return observation, action, next_observation, reward, episode_done
-        return observation, None, self.env.encoder.encodeQuesting('macro'), 0, False 
+        return observation, None, self.env.encoder.encodeQuesting('macro'), 0, False
+
+    def rlDefense(self):
+        observation = self.env.encoder.encodeDefense('macro')
+        if len(observation) != 0:
+            action = self.agent_d.choose_action(observation)
+            next_observation, reward, episode_done = self.env.step_defense(action)
+            return observation, action, next_observation, reward, episode_done
+        return observation, None, self.env.encoder.encodeDefense('macro'), 0, False  
 
     def learnPlanning(self, observation, action, reward, next_observation, episode_done):
         if len(next_observation) != 0:
@@ -51,4 +66,11 @@ class MacroSimulator(BaseSimulator):
                 self.agent_q.learn(observation, reward, next_observation, episode_done)
             elif pipeline == 5:
                 self.agent_q.learn(action[0], observation, reward, next_observation)
+
+    def learnDefense(self, observation, action, reward, next_observation, episode_done):
+        if not action: return
+        if pipeline == 4:
+            self.agent_d.learn(observation, reward, next_observation, episode_done)
+        elif pipeline == 5:
+            self.agent_d.learn(action[0], observation, reward, next_observation)
     

@@ -40,6 +40,9 @@ class LowLevelEnv(BaseEnv):
         #     return self.encoder.encodeQuesting('critic'), -1, True
         return self.encoder.encodeQuesting('critic'), 0, False
 
+    def step_defense(self, action):
+        return super().step_defense(action) ############# to implement!!!!!!!!!!!!11
+
     def endRound(self, mode):
         super().endRound(mode)
         self.updateHand()

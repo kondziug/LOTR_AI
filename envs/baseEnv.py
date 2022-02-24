@@ -54,16 +54,18 @@ class BaseEnv(ABC):
     def step_questing(self, action):
         pass
 
-    def endRound(self, mode):
+    @abstractmethod
+    def step_defense(self, action):
+        pass
+
+    def travelPhase(self, mode):
         if mode[2] == 'e':
             self.game.expertTravelPhase()
         else:
             self.game.randomTravelPhase()
         self.game.encounterPhase()
-        if mode[3] == 'e':
-            self.game.expertDefense()
-        else:
-            self.game.randomDefense()
+
+    def endRound(self, mode):
         if mode[4] == 'e':
             self.game.expertAttack()
         else:

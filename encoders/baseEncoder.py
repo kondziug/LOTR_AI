@@ -41,6 +41,17 @@ class BaseEncoder(ABC):
     def createRowQuesting(self):
         pass
 
+    def createRowDefense(self):
+        cardsAvailable = self.game.getPlayer().getUntappedCharacters()
+        engagedEnemies = self.game.getBoard().getEnemiesEngaged() 
+        row = np.zeros(3 + Game_Model.globals.numberOfAllies + Game_Model.globals.numberOfEnemies + 1) ## heroes + allies + enemies overall + round
+        for card in cardsAvailable:
+            row[card.getId()] = 1
+        for enemy in engagedEnemies:
+            row[enemy.getId()] = 1
+        row[-1] = self.game.getTurnNumber()
+        return row
+
     def encodePlanning(self, type): ## actor, critic, macro
         if type == 'critic' or type == 'macro':
             return self.createRowPlanning()
@@ -65,6 +76,20 @@ class BaseEncoder(ABC):
         else:
             row = self.createRowQuesting()
             cardsAvailable = self.game.getPlayer().getAllCharacters()
+            state = np.repeat(row[np.newaxis, :], len(cardsAvailable), 0)
+            for i in range(len(cardsAvailable)):
+                for card in cardsAvailable:
+                    if cardsAvailable[i].getId() == card.getId():
+                        continue
+                    state[i][card.getId()] = 0
+            return state
+
+    def encodeDefense(self, type):
+        if type == 'critic' or type == 'macro':
+            return self.createRowDefense()
+        else:
+            row = self.createRowDefense()
+            cardsAvailable = self.game.getPlayer().getUntappedCharacters()
             state = np.repeat(row[np.newaxis, :], len(cardsAvailable), 0)
             for i in range(len(cardsAvailable)):
                 for card in cardsAvailable:

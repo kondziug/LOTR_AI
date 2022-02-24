@@ -159,14 +159,14 @@ def main():
         for en in encodings:
             simulator = MacroSimulator(en)
             space = {
-                'lr': hp.loguniform('lr', -10, -7), #### nope
+                'lr': hp.loguniform('lr', -9, -7), #### nope
                 'n_neurons': hp.choice('n_neurons', [50, 75, 100, 125, 150])
             }
             best = fmin(
                 fn=simulator.objective,
                 space=space,
                 algo=tpe.suggest,
-                max_evals=100
+                max_evals=50
             )
             print(best)
 

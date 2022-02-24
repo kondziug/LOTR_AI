@@ -11,11 +11,11 @@ from mainConfig import pipeline, rlMode, difficulty, encoding
 ## only for double learning rate!!!!
 
 def main():
-    dirName = 'llrrrp2en2nn100hard'
+    dirName = 'rrrlrp5en0nn150medium'
     Game_Model.globals.init()
     n_neurons = dirName[12:15]
     n_neurons = n_neurons if not n_neurons[-1].isalpha() else n_neurons[0:2]
-    params = { 'lrp': 0.0001, 'lrq': 0.0001, 'n_neurons': 150 }
+    params = { 'lr': 0.0001,'n_neurons': n_neurons }
     if pipeline == 1 or pipeline == 2: env = LowLevelSimulator(encoding)
     if pipeline == 4 or pipeline == 5: env = MacroSimulator(encoding)
     score_history = env.loadAndTest(params)

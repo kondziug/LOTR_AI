@@ -22,6 +22,10 @@ class BaseSimulator(ABC):
     def agent_questing(self):
         pass
 
+    @abstractproperty
+    def agent_defense(self):
+        pass
+
     @abstractmethod
     def setAgents(self, params):
         pass
@@ -40,6 +44,10 @@ class BaseSimulator(ABC):
     def rlQuesting(self): # returns observation, action, next_observation, reward, episode_done
         pass
 
+    @abstractmethod
+    def rlDefense(self): # returns observation, action, next_observation, reward, episode_done
+        pass
+
     def simulatePlanning(self, observation):
         if rlMode[0] == 'l':
             return self.rlPlanning(observation)
@@ -52,12 +60,27 @@ class BaseSimulator(ABC):
         self.env.game.randomQuesting()
         return None, None, None, 0, False
 
+    def simulateDefense(self):
+        if not self.env.game.getBoard().getEnemiesEngaged():
+            return None, None, None, 0, False
+        if not self.env.game.getPlayer().getUntappedCharacters():
+            self.env.game.resolveDefense(None)
+            return None, None, None, 0, False
+        if rlMode[3] == 'l':
+            return self.rlDefense()
+        self.env.game.randomDefense()
+        return None, None, None, 0, False
+
     @abstractmethod
     def learnPlanning(self, observation, action, reward, next_observation, episode_done):
         pass
 
     @abstractmethod
     def learnQuesting(self, observation, action, reward, next_observation, episode_done):
+        pass
+
+    @abstractmethod
+    def learnDefense(self, observation, action, reward, next_observation, episode_done):
         pass
 
     def objective(self, params):
@@ -73,12 +96,17 @@ class BaseSimulator(ABC):
             score = 0
             if rlMode[0] == 'l': self.agent_planning().reset()
             if rlMode[1] == 'l': self.agent_questing().reset()
+            if rlMode[3] == 'l': self.agent_defense().reset()
             pobservation = self.env.reset()
             while not episode_done:
                 reward = 0
                 planning_action, next_pobservation = self.simulatePlanning(pobservation)
                     
                 qobservation, questing_action, next_qobservation, reward, episode_done = self.simulateQuesting()
+
+                self.env.travelPhase(rlMode)
+
+                dobservation, defense_action, next_dobservation, reward, episode_done = self.simulateDefense()
 
                 self.env.endRound(rlMode)
 
@@ -91,6 +119,7 @@ class BaseSimulator(ABC):
                 
                 if rlMode[0] == 'l': self.learnPlanning(pobservation, planning_action, reward, next_pobservation, episode_done)
                 if rlMode[1] == 'l': self.learnQuesting(qobservation, questing_action, reward, next_qobservation, episode_done)
+                if rlMode[3] == 'l': self.learnDefense(dobservation, defense_action, reward, next_dobservation, episode_done)
 
                 pobservation = self.env.encoder.encodePlanning('critic')
                 score += reward
@@ -102,19 +131,29 @@ class BaseSimulator(ABC):
                 if avg_score > best_local_avg:
                     best_local_avg = avg_score
                 if best_local_avg > self.best_global_avg and pipeline != 1:
-                    lrp = params['lrp']
-                    lrq = params['lrq']
-                    nnp = params['n_neurons_p']
-                    nnq = params['n_neurons_q']
-                    dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnp' + str(nnp) + 'nnq' + str(nnq) + difficulty + 'dr'
+                    ################## for direct action optimization #########################
+                    # lrp = params['lrp']
+                    # lrq = params['lrq']
+                    # nnp = params['n_neurons_p']
+                    # nnq = params['n_neurons_q']
+                    # dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnp' + str(nnp) + 'nnq' + str(nnq) + difficulty + 'dr'
+                    # if rlMode[0] == 'l': self.agent_planning().save_models(dirname, 'planning')
+                    # if rlMode[1] == 'l': self.agent_questing().save_models(dirname, 'questing')
+                    # print(f'model with lrp {lrp}, lrq: {lrq}, nnp: {nnp}, nnq: {nnq} saved with best global avg: {self.best_global_avg}')
+                    ################# for macro optimization ##############################
+                    lr = params['lr']
+                    nn = params['n_neurons']
+                    dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(nn) + difficulty
                     if rlMode[0] == 'l': self.agent_planning().save_models(dirname, 'planning')
                     if rlMode[1] == 'l': self.agent_questing().save_models(dirname, 'questing')
-                    print(f'model with lrp {lrp}, lrq: {lrq}, nnp: {nnp}, nnq: {nnq} saved with best global avg: {self.best_global_avg}')
+                    if rlMode[3] == 'l': self.agent_defense().save_models(dirname, 'defense')
+                    print(f'model with lrp {lr}, nn: {nn}, saved with best global avg: {self.best_global_avg}')
                     self.best_global_avg = best_local_avg
 
-                # print(f'episode: {i}, avg score: {avg_score}')
-                    
-
+            
+            # if i % 100 == 0:
+            #     print(f'episode: {i}, avg score: {avg_score}')
+            
         self.env.hardReset()
 
         print(f'best local avg: {best_local_avg}')
@@ -127,9 +166,10 @@ class BaseSimulator(ABC):
         # for double optimization
         # dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnp' + str(params['n_neurons_p']) + 'nnq' + str(params['n_neurons_q']) + difficulty + 'dr'
         # for single optimization
-        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(params['n_neurons_q']) + difficulty
+        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nn' + str(params['n_neurons']) + difficulty
         if rlMode[0] == 'l': self.agent_planning().load_models(dirname, 'planning')
         if rlMode[1] == 'l': self.agent_questing().load_models(dirname, 'questing')
+        if rlMode[3] == 'l': self.agent_defense().load_models(dirname, 'defense')
 
         score_history = []
 
@@ -140,12 +180,17 @@ class BaseSimulator(ABC):
             score = 0
             if rlMode[0] == 'l': self.agent_planning().reset()
             if rlMode[1] == 'l': self.agent_questing().reset()
+            if rlMode[3] == 'l': self.agent_defense().reset()
             pobservation = self.env.reset()
             while not episode_done:
                 reward = 0
                 self.simulatePlanning(pobservation)
                     
                 self.simulateQuesting()
+
+                self.env.travelPhase(rlMode)
+
+                self.simulateDefense()
 
                 self.env.endRound(rlMode)
 
