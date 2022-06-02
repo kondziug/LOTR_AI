@@ -22,14 +22,14 @@ class MacroSimulator(BaseSimulator):
 
     def setAgents(self, params):
         if rlMode[0] == 'l':
-            if pipeline == 4: self.agent_p = Agent('planning', 7, params['lr'], params['lr'], params['n_neurons'])
-            elif pipeline == 5: self.agent_p = QAgent('planning', 7, params['lr'], params['n_neurons'])
+            if pipeline == 4: self.agent_p = Agent('planning', 7, params['lrp'], params['lrp'], params['n_neurons_p'])
+            elif pipeline == 5: self.agent_p = QAgent('planning', 7, params['lrp'], params['n_neurons_p'])
         if rlMode[1] == 'l':
-            if pipeline == 4: self.agent_q = Agent('questing', 7, params['lr'], params['lr'], params['n_neurons'])
-            elif pipeline == 5: self.agent_q = QAgent('questing', 7, params['lr'], params['n_neurons'])
+            if pipeline == 4: self.agent_q = Agent('questing', 7, params['lrq'], params['lrq'], params['n_neurons_q'])
+            elif pipeline == 5: self.agent_q = QAgent('questing', 7, params['lrq'], params['n_neurons_q'])
         if rlMode[3] == 'l':
-            if pipeline == 4: self.agent_d = Agent('defense', 4, params['lr'], params['lr'], params['n_neurons'])
-            elif pipeline == 5: self.agent_d = QAgent('defense', 4, params['lr'], params['n_neurons'])
+            if pipeline == 4: self.agent_d = Agent('defense', 4, params['lrd'], params['lrd'], params['n_neurons_d'])
+            elif pipeline == 5: self.agent_d = QAgent('defense', 4, params['lrd'], params['n_neurons_d'])
         
     def rlPlanning(self, observation):
         if len(self.env.encoder.encodePlanning('macro')) != 0:

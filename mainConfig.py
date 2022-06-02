@@ -14,14 +14,17 @@ num_episodes = 10000
 encoding = 0
 default_lr = 0.0002
 n_neurons = 50
-rlMode = 'lrrlr'
+rlMode = 'llrrr'
 
 ############################# mcts #######################
-mctsMode = 'rrrrr'
-playoutBudget = 40
-playoutsPerSimulation = 1
+mctsMode = 'rmrmr'
+playoutBudget = 600
+playoutsPerSimulation = 30
 playoutType = 0 ## 0 - random, 1 - expert
+reduction_planning = True
+reduction_questing = True
+reduction_defense = True
 
 ########################## game model ####################
-difficulty = 'hard'
+difficulty = 'easy'
 fullGame = False

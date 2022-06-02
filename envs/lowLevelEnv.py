@@ -41,7 +41,23 @@ class LowLevelEnv(BaseEnv):
         return self.encoder.encodeQuesting('critic'), 0, False
 
     def step_defense(self, action):
-        return super().step_defense(action) ############# to implement!!!!!!!!!!!!11
+        if len(action) == 1:
+            action = np.squeeze(action, axis=0)
+        else:
+            action = np.squeeze(action)
+        cardsAvailable = self.game.getPlayer().getUntappedCharacters()
+        cardList = []
+        for i in range(len(action)):
+            if action[i]:
+                cardList.append(cardsAvailable[i])
+        if not cardList:
+            return self.encoder.encodeDefense('critic'), -1, True
+        self.game.resolveDefense(cardList)
+        # if Game_Model.globals.gameWin:
+        #     return self.encoder.encodeQuesting('critic'), 1, True
+        # if Game_Model.globals.gameOver:
+        #     return self.encoder.encodeQuesting('critic'), -1, True
+        return self.encoder.encodeDefense('critic'), 0, False
 
     def endRound(self, mode):
         super().endRound(mode)

@@ -7,6 +7,7 @@ import random
 import math
 import copy
 import itertools
+from mainConfig import reduction_planning, reduction_questing, reduction_defense
 
 class MCTS:
     def __init__(self, rootNode, playoutBudget, playoutsPerSimulation, playoutType):
@@ -202,10 +203,11 @@ class MCTS:
         legalCards = []
         legalCards.append('None')
         playerHand = player.getHand()
-        # gandalf = player.findCardInHandByName('Gandalf')
-        # if gandalf and player.getResourcesBySphere(gandalf.sphere) > 4:
-        #     legalCards.append('Gandalf')
-        #     return legalCards
+        if reduction_planning:
+            gandalf = player.findCardInHandByName('Gandalf')
+            if gandalf and player.getResourcesBySphere(gandalf.sphere) > 4:
+                legalCards.append('Gandalf')
+                return legalCards
         for card in playerHand:
             if not card.getName() in legalCards and player.getResourcesBySphere(card.sphere) >= card.cost:
                 legalCards.append(card.getName())
@@ -219,9 +221,11 @@ class MCTS:
         for i in range(1, len(playerCharacters)):
             for subset in itertools.combinations(playerCharacters, i):
                 cardList = list(subset)
-                if self.getSubsetWillpower(cardList) > combinedThreat + 2:
+                if reduction_questing:
+                    if self.getSubsetWillpower(cardList) > combinedThreat + 2:
+                        legalNodes.append(self.subsetToNames(cardList))
+                else:
                     legalNodes.append(self.subsetToNames(cardList))
-                # legalNodes.append(self.subsetToNames(cardList))
         return legalNodes
 
     def findLegalsDefense(self, board, player):
@@ -231,9 +235,11 @@ class MCTS:
         playerCharacters = player.getAllCharacters()
         legalDefenders = []
         for subset in itertools.combinations(playerCharacters, len(enemiesEngaged)):
-            if not self.containsAllyTapped(list(subset)):
+            if reduction_defense:
+                if not self.containsAllyTapped(list(subset)):
+                    legalDefenders.append(self.subsetToNames(list(subset)))
+            else:
                 legalDefenders.append(self.subsetToNames(list(subset)))
-            # legalDefenders.append(self.subsetToNames(list(subset)))
         return legalDefenders
 
     # def findLegalsAttack(self): ######################## do not erase!!!!!!!!!!!!!!
