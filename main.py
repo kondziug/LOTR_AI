@@ -1,4 +1,5 @@
 from os import pipe
+import json
 import simulators
 # from Game_Model.game import Game
 from defaultAgent import DefaultAgent
@@ -6,7 +7,7 @@ import Game_Model.globals
 # from envs.lowLevelEnv import LowLevelEnv
 # from vanilla_AC.agent import Agent
 from vanilla_mcts.mctsAgent import MCTSAgent
-from mainConfig import pipeline, num_episodes, n_neurons, default_lr, mctsMode, playoutBudget, playoutsPerSimulation, playoutType
+from mainConfig import pipeline, num_episodes, n_neurons, rlMode, mctsMode, playoutBudget, playoutsPerSimulation, playoutType
 import numpy as np
 import time
 import matplotlib.pyplot as plt
@@ -217,15 +218,34 @@ def main():
             #     max_evals=100
             # )
             # print(best)
+            # simulator = MacroSimulator(en)
+            # space = {
+            #     # 'lrp': hp.choice('lrp', [7e-4, 7.5e-4, 8e-4, 8.5e-4, 9e-4, 1e-3, 1.1e-3, 1.2e-3]),
+            #     'lrq': hp.choice('lrq', [6e-4, 6.5e-4, 7e-4, 7.5e-4, 8e-4, 8.5e-4, 9e-4, 1e-3]),
+            #     'lrd': hp.choice('lrd', [5e-4, 5.5e-4, 6e-4, 6.5e-4, 7e-4, 7.5e-4]),
+            #     # 'n_neurons_p': hp.choice('n_neurons_p', [50, 60, 70, 80, 90]),
+            #     'n_neurons_q': hp.choice('n_neurons_q', [70, 80, 90, 100, 110]),
+            #     'n_neurons_d': hp.choice('n_neurons_d', [30, 40, 50, 60, 70, 80])
+            # }
+            # best = fmin(
+            #     fn=simulator.objective,
+            #     space=space,
+            #     algo=tpe.suggest,
+            #     max_evals=200
+            # )
+            # print(best)
+            ######################
             simulator = MacroSimulator(en)
-            space = {
-                'lrp': hp.choice('lrp', [7e-4, 7.5e-4, 8e-4, 8.5e-4, 9e-4, 1e-3, 1.1e-3, 1.2e-3]),
-                'lrq': hp.choice('lrq', [6e-4, 6.5e-4, 7e-4, 7.5e-4, 8e-4, 8.5e-4, 9e-4, 1e-3]),
-                # 'lrd': hp.choice('lrd', [5e-4, 5.5e-4, 6e-4, 6.5e-4, 7e-4, 7.5e-4]),
-                'n_neurons_p': hp.choice('n_neurons_p', [50, 60, 70, 80, 90]),
-                'n_neurons_q': hp.choice('n_neurons_q', [70, 80, 90, 100, 110]),
-                # 'n_neurons_d': hp.choice('n_neurons_d', [30, 40, 50, 60, 70, 80])
-            }
+            space = {}
+            if rlMode[0] == 'l':
+                space.update({'lrp': hp.choice('lrp', [7e-4, 7.5e-4, 8e-4, 8.5e-4, 9e-4, 1e-3, 1.1e-3, 1.2e-3])})
+                space.update({'n_neurons_p': hp.choice('n_neurons_p', [50, 60, 70, 80, 90])})
+            if rlMode[1] == 'l':
+                space.update({'lrq': hp.choice('lrq', [6e-4, 6.5e-4, 7e-4, 7.5e-4, 8e-4, 8.5e-4, 9e-4, 1e-3])})
+                space.update({'n_neurons_q': hp.choice('n_neurons_q', [70, 80, 90, 100, 110])})
+            if rlMode[3] == 'l':
+                space.update({'lrd': hp.choice('lrd', [5e-4, 5.5e-4, 6e-4, 6.5e-4, 7e-4, 7.5e-4])})
+                space.update({'n_neurons_d': hp.choice('n_neurons_d', [30, 40, 50, 60, 70, 80])})
             best = fmin(
                 fn=simulator.objective,
                 space=space,
@@ -233,6 +253,7 @@ def main():
                 max_evals=200
             )
             print(best)
+
 
 if __name__=='__main__':
     main()

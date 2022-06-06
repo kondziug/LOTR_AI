@@ -2,7 +2,7 @@
 # 1 - single RL run
 # 2 - RL direct optimization
 # 3 - mcts trial
-# 4 - RL macro optimization
+# 4 - RL AC macro optimization
 # 5 - RLQ macro optimization
 pipeline = 5
 num_episodes = 10000
@@ -14,7 +14,7 @@ num_episodes = 10000
 encoding = 0
 default_lr = 0.0002
 n_neurons = 50
-rlMode = 'llrrr'
+rlMode = 'llrlr'
 
 ############################# mcts #######################
 mctsMode = 'rmrmr'

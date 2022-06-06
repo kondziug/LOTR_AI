@@ -13,18 +13,18 @@ from mainConfig import pipeline, rlMode, difficulty, encoding, num_episodes
 ## only for single agent!!!!
 
 def main():
-    dirName = 'rrrlrp5en0nnd100easymacroAC'
+    dirName = 'rlrlrp5en0nnq70nnd70easymacroAC'
     Game_Model.globals.init()
     ############## for single ##############
-    n_neurons = dirName[13:16]
-    n_neurons = n_neurons if not n_neurons[-1].isalpha() else n_neurons[0:2]
-    params = { 'lrd': 0.0001,'n_neurons_d': n_neurons }
+    # n_neurons = dirName[13:16]
+    # n_neurons = n_neurons if not n_neurons[-1].isalpha() else n_neurons[0:2]
+    # params = { 'lrd': 0.0001,'n_neurons_d': n_neurons }
     ################ for double ###############
-    # n_neurons_p = dirName[13:16]
-    # n_neurons_p = n_neurons_p if not n_neurons_p[-1].isalpha() else n_neurons_p[0:2]
-    # n_neurons_d = dirName[19:22]
-    # n_neurons_d = n_neurons_d if not n_neurons_d[-1].isalpha() else n_neurons_d[0:2]
-    # params = { 'lrp': 0.0001, 'lrd': 0.0001, 'n_neurons_p': n_neurons_p, 'n_neurons_d': n_neurons_d }
+    n_neurons_q = dirName[13:16]
+    n_neurons_q = n_neurons_q if not n_neurons_q[-1].isalpha() else n_neurons_q[0:2]
+    n_neurons_d = dirName[18:21]
+    n_neurons_d = n_neurons_d if not n_neurons_d[-1].isalpha() else n_neurons_d[0:2]
+    params = { 'lrq': 0.0001, 'lrd': 0.0001, 'n_neurons_q': n_neurons_q, 'n_neurons_d': n_neurons_d }
     ############### for triple #################
     # n_neurons_p = dirName[13:16]
     # print(n_neurons_p)

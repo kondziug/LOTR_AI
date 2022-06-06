@@ -154,42 +154,30 @@ class BaseSimulator(ABC):
                     # np.savetxt(txtname, score_history, fmt='%f', newline=' ')
                     # self.best_global_avg = best_local_avg
                     ################# for macro optimization ##############################
-                    # lr = params['lrd']
-                    # nn = params['n_neurons_d']
-                    # dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnd' + str(nn) + difficulty + 'macroAC'
-                    # if rlMode[0] == 'l': self.agent_planning().save_models(dirname, 'planning')
-                    # if rlMode[1] == 'l': self.agent_questing().save_models(dirname, 'questing')
-                    # if rlMode[3] == 'l': self.agent_defense().save_models(dirname, 'defense')
-                    # print(f'model with lrd {lr}, nnd: {nn}, saved with best global avg: {self.best_global_avg}')
-                    # self.best_global_avg = best_local_avg
-                    ################# for macro double #############################
-                    lrp = params['lrp']
-                    lrq = params['lrq']
-                    # lrd = params['lrd']
-                    nnp = params['n_neurons_p']
-                    nnq = params['n_neurons_q']
-                    # nnd = params['n_neurons_d']
-                    dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnp' + str(nnp) + 'nnq' + str(nnq) + difficulty + 'macroAC'
+                    dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding)
+                    if rlMode[0] == 'l':
+                        lrp = params['lrp']
+                        nnp = params['n_neurons_p']
+                        dirname += 'nnp' + str(nnp)
+                        print(f'lrp {lrp}, nnp {nnp}, ')
+                    if rlMode[1] == 'l':
+                        lrq = params['lrq']
+                        nnq = params['n_neurons_q']
+                        dirname += 'nnq' + str(nnq)
+                        print(f'lrq {lrq}, nnq {nnq}, ')
+                    if rlMode[3] == 'l':
+                        lrd = params['lrd']
+                        nnd = params['n_neurons_d']
+                        dirname += 'nnd' + str(nnd)
+                        print(f'lrd {lrd}, nnd {nnd}, ')
+                    print(f'saved with best global avg: {self.best_global_avg}')
+                    if pipeline == 4: dirname += 'macroAC'
+                    if pipeline == 5: dirname += 'macroQ'
                     if rlMode[0] == 'l': self.agent_planning().save_models(dirname, 'planning')
                     if rlMode[1] == 'l': self.agent_questing().save_models(dirname, 'questing')
                     if rlMode[3] == 'l': self.agent_defense().save_models(dirname, 'defense')
-                    print(f'model with lrp {lrp}, lrq {lrq}, nnp: {nnp}, nnq: {nnq}, saved with best global avg: {self.best_global_avg}')
                     self.best_global_avg = best_local_avg
-                    ################## for macro triple ############################
-                    # lrp = params['lrp']
-                    # lrq = params['lrq']
-                    # lrd = params['lrd']
-                    # nnp = params['n_neurons_p']
-                    # nnq = params['n_neurons_q']
-                    # nnd = params['n_neurons_d']
-                    # dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnp' + str(nnp) + 'nnq' + str(nnq) + 'nnd' + str(nnd) + difficulty + 'macroAC'
-                    # if rlMode[0] == 'l': self.agent_planning().save_models(dirname, 'planning')
-                    # if rlMode[1] == 'l': self.agent_questing().save_models(dirname, 'questing')
-                    # if rlMode[3] == 'l': self.agent_defense().save_models(dirname, 'defense')
-                    # print(f'model with lrp {lrp}, lrq {lrq}, lrd {lrd}, nnp: {nnp}, nnq: {nnq}, nnd: {nnd} saved with best global avg: {self.best_global_avg}')
-                    # self.best_global_avg = best_local_avg
 
-            
             # if i % 100 == 0:
             #    print(f'episode: {i}, avg score: {avg_score}')
             
@@ -205,9 +193,9 @@ class BaseSimulator(ABC):
         # for triple optimization
         # dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnp' + str(params['n_neurons_p']) + 'nnq' + str(params['n_neurons_q']) + 'nnd' + str(params['n_neurons_d']) + difficulty + 'macroAC'
         # for double optimization
-        # dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnp' + str(params['n_neurons_p']) + 'nnd' + str(params['n_neurons_d']) + difficulty + 'macroAC'
+        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnq' + str(params['n_neurons_q']) + 'nnd' + str(params['n_neurons_d']) + difficulty + 'macroAC'
         # for single optimization
-        dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnd' + str(params['n_neurons_d']) + difficulty +'macroAC'
+        # dirname = rlMode + 'p' + str(pipeline) + 'en' + str(self.encoding) + 'nnd' + str(params['n_neurons_d']) + difficulty +'macroAC'
         if rlMode[0] == 'l': self.agent_planning().load_models(dirname, 'planning')
         if rlMode[1] == 'l': self.agent_questing().load_models(dirname, 'questing')
         if rlMode[3] == 'l': self.agent_defense().load_models(dirname, 'defense')
